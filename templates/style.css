@@ -1,0 +1,43 @@
+:root {
+    --bg: white;
+    --color: black;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', serif;
+    font-size: 62.5%;
+    background-color: var(--bg);
+    color: var(--color);
+}
+
+.wrapper {
+    display: grid;
+}
+
+nav {
+    background-color: var(--bg); /* Set the background color of the navigation bar */
+    font-size: 1.6rem;
+}
+
+ul {
+    list-style-type: none; /* Remove the bullets from the list */
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Hide any content that goes outside the bounds of the navigation bar */
+}
+
+li {
+    color: var(--color);
+    float: left; /* Float the list items to the left to create the horizontal layout */
+}
+
+li a {
+    display: block; /* Set the link to display as a block element */
+    text-align: center; /* Center the text within the link */
+    padding: 14px 16px; /* Add some padding around the link to create some space */
+    text-decoration: none; /* Remove the underline from the link */
+    color: var(--color)
+}
+
