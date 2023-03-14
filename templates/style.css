@@ -1,6 +1,9 @@
 :root {
-    --bg: white;
+    --bg: beige;
     --color: black;
+    --separate: gray;
+    --hover_text: slateblue;
+    --hover_dm: orange;
 }
 
 body {
@@ -8,36 +11,138 @@ body {
     padding: 0;
     font-family: 'Arial', serif;
     font-size: 62.5%;
-    background-color: var(--bg);
+    background-color: var(--separate);
     color: var(--color);
 }
 
 .wrapper {
     display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: 70px 7fr 3fr;
+    height: 100vh;
+    gap: 0.25rem 0.25rem;
 }
 
-nav {
-    background-color: var(--bg); /* Set the background color of the navigation bar */
+.choose_files {
+    grid-column: 1 / 2;
+    grid-row: 2 / 4;
+}
+
+.programme_text {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+}
+
+.code {
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+}
+
+.data {
+    grid-column: 2 / 4;
+    grid-row: 3 / 4;
+}
+
+/* NAVBAR START */
+.navbar {
+    grid-column: 1 / 4;
+    grid-row: 1 / 2;
+    height: 70px;
+    background-color: var(--bg);
     font-size: 1.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
 }
 
-ul {
-    list-style-type: none; /* Remove the bullets from the list */
-    margin: 0;
-    padding: 0;
-    overflow: hidden; /* Hide any content that goes outside the bounds of the navigation bar */
+.navbar ul {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 60px;
 }
 
-li {
+.navbar li {
+    list-style: none;
     color: var(--color);
-    float: left; /* Float the list items to the left to create the horizontal layout */
+    padding-right: 40px;
 }
 
-li a {
-    display: block; /* Set the link to display as a block element */
-    text-align: center; /* Center the text within the link */
-    padding: 14px 16px; /* Add some padding around the link to create some space */
-    text-decoration: none; /* Remove the underline from the link */
+.navbar li a {
+    text-decoration: none;
     color: var(--color)
 }
 
+.navbar li a:hover{
+    transition: 0.5s ease;
+    color: var(--hover_text)
+}
+
+#toggle_mode {
+    cursor: pointer;
+}
+
+#toggle_mode:hover{
+    color: var(--hover_dm);
+}
+
+.hamburger {
+    display: none;
+    cursor: pointer;
+}
+
+.bar {
+    display: block;
+    width: 25px;
+    height: 3px;
+    margin: 5px auto;
+    -webkit-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    background-color: var(--separate);
+}
+
+@media (max-width: 768px) {
+    .hamburger {
+        display: block;
+    }
+
+    .hamburger.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+    .hamburger.active .bar:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+    .hamburger.active .bar:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
+    }
+
+    .navbar ul {
+        position: fixed;
+        top: -100%;
+        gap: 0;
+        flex-direction: column;
+        background-color: var(--bg);
+        width: 100%;
+        text-align: center;
+        transition: 0.3s;
+    }
+
+    .navbar li {
+        margin: 16px 0;
+        padding-right: 0;
+    }
+
+    .navbar ul.active {
+        margin-top: 0;
+        top: 70px;
+        left: 0;
+    }
+}
+/* NAVBAR END */
+
+.navbar, .choose_files, .code, .programme_text, .data {
+    background-color: var(--bg);
+    color: var(--color);
+    transition: 1s ease;
+}

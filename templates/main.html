@@ -3,21 +3,41 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>My compiler</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
           integrity="sha384-b6lVK+yci+bfDmaY1u0zE8YYJt0TZxLEAFyYSLHId4xoVvsrQu3INevFKo+Xir8e" crossorigin="anonymous">
-    <script src="scritp.js" defer></script>
+    <script src="darkmode.js" defer></script>
+    <script src="hamburger.js" defer></script>
 </head>
 
 <body>
-    <nav>
+<div class="wrapper">
+    <nav class="navbar">
         <ul>
-            <li><a href="#files">File</a></li>
-            <li><a href="#edit">Edit</a></li>
-            <li><a href="#options">Options</a></li>
-            <li style="float: right"><a class="bi bi-brightness-high-fill" id="toggle_mode"></a></li>
+            <li><a href="#">File</a></li>
+            <li><a href="#">Edit</a></li>
+            <li><a href="#">Options</a></li>
         </ul>
+        <div class="hamburger">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <li style="justify-self: right"><a class="bi bi-moon-stars-fill" id="toggle_mode"></a></li>
     </nav>
+    <div class="choose_files">
+
+    </div>
+    <div class="programme_text">
+
+    </div>
+    <div class="code">
+
+    </div>
+    <div class="data">
+
+    </div>
+</div>
 </body>
 </html>
