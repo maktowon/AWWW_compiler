@@ -2,7 +2,6 @@
     --bg: beige;
     --color: black;
     --separate: gray;
-    --hover_text: slateblue;
     --hover_dm: orange;
 }
 
@@ -23,19 +22,72 @@ body {
     gap: 0.25rem 0.25rem;
 }
 
+/* CHOOSE_FILES START */
 .choose_files {
     grid-column: 1 / 2;
     grid-row: 2 / 4;
+    font-size: 1.8rem;
+    padding: 1.6rem;
 }
+
+#outer {
+    margin: 0;
+    padding: 0;
+}
+
+.choose_files ul {
+    list-style-type: none;
+}
+
+#file {
+    user-select: none;
+    text-decoration: none;
+    color: var(--color);
+}
+
+#file:hover {
+    color: var(--hover_dm);
+}
+
+.folder {
+    cursor: pointer;
+    word-break: break-all;
+    user-select: none;
+}
+
+.folder:hover {
+    color: var(--hover_dm);
+}
+
+#toggle_folder {
+    cursor: pointer;
+}
+
+.nested_in_folder {
+    display: none;
+}
+
+.active_folder {
+    display: block;
+}
+/* CHOOSE_FILES END */
 
 .programme_text {
     grid-column: 2 / 3;
     grid-row: 2 / 3;
+    font-size: 1.6rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    overflow-y: scroll;
 }
 
-.code {
+.code_window {
     grid-column: 3 / 4;
     grid-row: 2 / 3;
+    font-size: 1.6rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    overflow-y: scroll;
 }
 
 .data {
@@ -49,7 +101,7 @@ body {
     grid-row: 1 / 2;
     height: 70px;
     background-color: var(--bg);
-    font-size: 1.6rem;
+    font-size: 2.4rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -57,6 +109,7 @@ body {
 }
 
 .navbar ul {
+    padding: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -66,24 +119,28 @@ body {
 .navbar li {
     list-style: none;
     color: var(--color);
-    padding-right: 40px;
+    /*padding-right: 40px;*/
 }
 
 .navbar li a {
+    user-select: none;
     text-decoration: none;
     color: var(--color)
 }
 
 .navbar li a:hover{
-    transition: 0.5s ease;
-    color: var(--hover_text)
+    color: var(--hover_dm);
 }
 
-#toggle_mode {
+.navbar span a:hover {
+    transition: 0.5s ease;
+}
+
+#toggle_dark_mode {
     cursor: pointer;
 }
 
-#toggle_mode:hover{
+#toggle_dark_mode:hover{
     color: var(--hover_dm);
 }
 
@@ -99,7 +156,7 @@ body {
     margin: 5px auto;
     -webkit-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out;
-    background-color: var(--separate);
+    background-color: var(--color);
 }
 
 @media (max-width: 768px) {
@@ -125,11 +182,12 @@ body {
         background-color: var(--bg);
         width: 100%;
         text-align: center;
-        transition: 0.3s;
+        justify-content: center;
+        transition: 0.3s ease;
     }
 
     .navbar li {
-        margin: 16px 0;
+        margin: 16px 16px;
         padding-right: 0;
     }
 
@@ -138,11 +196,19 @@ body {
         top: 70px;
         left: 0;
     }
+
+    .change_mode {
+        justify-self: right;
+    }
+}
+
+.bi:hover {
+    color: var(--hover_dm);
 }
 /* NAVBAR END */
 
-.navbar, .choose_files, .code, .programme_text, .data {
+.navbar, .choose_files, .code_window, .programme_text, .data {
     background-color: var(--bg);
     color: var(--color);
-    transition: 1s ease;
+    transition: 0.3s ease;
 }
