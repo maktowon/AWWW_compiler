@@ -275,11 +275,12 @@ li a:hover {
     font-size: 1.6rem;
     background-color: var(--color1);
     transition: background-color 0.3s ease;
+    width: 60%;
 }
 
 @media (max-width: 768px) {
     .data .tabs {
-        font-size: 3vw;
+        font-size: 2.5vw;
     }
 }
 
