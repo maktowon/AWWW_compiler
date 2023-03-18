@@ -253,9 +253,9 @@ li a:hover{
 .data .tabs {
     position: relative;
     display: flex;
-    font-size: 1.4rem;
+    font-size: 3vw;
     background-color: var(--color1);
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease;
 }
 
 .data .tabs label {
