@@ -2,7 +2,7 @@
 <html lang="zxx">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport">
     <title>My compiler</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css"
@@ -25,10 +25,10 @@
             <span class="bar"></span>
             <span class="bar"></span>
         </div>
-        <span class="change_mode"><a class="bi bi-moon-stars-fill" id="toggle_dark_mode"></a></span>
+        <span class="change_mode"><i class="bi bi-moon-stars-fill" id="toggle_dark_mode"></i></span>
     </nav>
     <div class="choose_files">
-        <ul id=outer>
+        <ul id="outer">
             <li><span class="folder"><a href="#">folder 1</a></span>
                 <ul class="nested_in_folder">
                     <li><a href="#">Some</a></li>
@@ -54,8 +54,8 @@
     </div>
     <div class="programme_text">
         <pre>
-#include &lt;iostream>
-#include &lt;bits/stdc++.h>
+#include &lt;iostream&gt;
+#include &lt;bits/stdc++.h&gt;
 
 using namespace::std;
 
@@ -63,7 +63,7 @@ const int N = 500000;
 const int MOD = 1e9 + 7;
 
 const int base = 1 &lt;&lt; 19;
-pair&lt;int, int> tree[2 * base];
+pair&lt;int, int&gt; tree[2 * base];
 
 void fill() {
     for (int i = 0; i &lt; 2 * base; ++i) {
@@ -71,13 +71,13 @@ void fill() {
     }
 }
 
-pair&lt;int, int> query(int a, int b) {
+pair&lt;int, int&gt; query(int a, int b) {
     if (a == b) {
         return {tree[a + base].first, tree[a+base].second};
     }
     a = a - 1 + base;
     b = b + 1 + base;
-    pair&lt;int, int> res = {N + 3, 0};
+    pair&lt;int, int&gt; res = {N + 3, 0};
     while (a/2 != b/2) {
         if (a % 2 == 0) {
             int minKom = min(res.first, tree[a + 1]. first);
@@ -97,12 +97,12 @@ pair&lt;int, int> query(int a, int b) {
     return res;
 }
 
-void add (int index, pair&lt;int, int> value) {
+void add (int index, pair&lt;int, int&gt; value) {
     index = index + base;
     tree[index].second = value.second % MOD;
     tree[index].first = value.first;
     index /= 2;
-    while (index > 0) {
+    while (index &gt; 0) {
         if (tree[2 * index].first == tree[2 * index + 1].first) {
             tree[index].second = tree[2 * index].second + tree[2 * index + 1].second;
             tree[index].second %= MOD;
@@ -125,25 +125,25 @@ int main() {
     cout.tie(0);
 
     int n, k, l;
-    cin >> n >> k >> l;
+    cin &gt;&gt; n &gt;&gt; k &gt;&gt; l;
     int a[n], lefts[n], prelasts[n], rights[n],  R = n - 1;
     for (int i = 0; i &lt; n; ++i) {
-        cin >> a[i];
+        cin &gt;&gt; a[i];
     }
 
     sort(a, a + n);
 
-    for (int i = n - 1; i >= 0; --i) {
+    for (int i = n - 1; i &gt;= 0; --i) {
         if (a[i] - l &lt; a[0]) rights[i] = -1;
         else {
-            while (R > 0 && a[max(R, 0)] > a[i] - l) --R;
+            while (R &gt; 0 &amp;&amp; a[max(R, 0)] &gt; a[i] - l) --R;
             rights[i] = max(R, 0);
         }
     }
 
     int j = -1;
     for (int i = 0; i &lt; n; ++i) {
-        while (j &lt; n - 2 && a[j + 1] + k &lt; a[i]) ++j;
+        while (j &lt; n - 2 &amp;&amp; a[j + 1] + k &lt; a[i]) ++j;
         prelasts[i] = j;
     }
     for (int i = 0; i &lt; n; ++i) {
@@ -160,7 +160,7 @@ int main() {
         }
         else {
             if (lefts[i] &lt;= rights[i]) {
-                pair&lt;int, int> res = query(lefts[i], rights[i]);
+                pair&lt;int, int&gt; res = query(lefts[i], rights[i]);
                 if (res.first != N + 3) {
                     res.first++;
                     add(i, res);
@@ -169,10 +169,10 @@ int main() {
         }
     }
 
-    pair&lt;int, int> res = {N+3, 0};
+    pair&lt;int, int&gt; res = {N+3, 0};
     for (int i = 0; i &lt; n; ++i) {
-        if (a[i] + k >= a[n - 1]) {
-            pair&lt;int, int> q = query(i, i);
+        if (a[i] + k &gt;= a[n - 1]) {
+            pair&lt;int, int&gt; q = query(i, i);
             int minKom = min(res.first, q.first);
             res.second = res.second * (res.first == minKom) + q.second * (q.first == minKom);
             res.second %= MOD;
@@ -260,7 +260,7 @@ int main() {
         blanditiis corporis culpa eligendi et fugiat incidunt inventore laborum quod, tempora totam ullam!
     </div>
     <div class="data">
-        <input type="radio" name="slider" id="tab1" checked="checked">
+        <input type="radio" name="slider" id="tab1" checked>
         <input type="radio" name="slider" id="tab2">
         <input type="radio" name="slider" id="tab3">
         <input type="radio" name="slider" id="tab4">
@@ -285,7 +285,7 @@ int main() {
             </div>
             <div class="content content-2">
                 <h1>Some random header for tab2</h1>
-                <div style="overflow: auto"> Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus
+                <div> Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusamus
                     accusantium animi aspernatur cum doloribus fugit, in incidunt libero non odit quam quasi ratione
                     sapiente sint sit tempore vero! Ad asperiores consectetur cum enim harum magni nulla officiis quasi
                     tempore veniam? Deleniti dolorem error et ipsam rerum ullam? A ab alias aperiam aspernatur assumenda
