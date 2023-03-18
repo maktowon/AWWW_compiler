@@ -303,7 +303,7 @@ label:hover {
 #tab4:checked ~ .tabs label.tab4{
     transition: all 0.3s ease;
     color: var(--color);
-    border-bottom: 51px solid var(--hover_color);
+    border-bottom: 52px solid var(--hover_color);
 }
 
 .data input[type="radio"] {
