@@ -17,9 +17,30 @@ body {
     padding: 0;
     font-family: 'Arial', serif;
     font-size: 62.5%;
-    background-color: var(--color);
+    background-color: var(--color3);
     color: var(--color);
 }
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: var(--color3);
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-corner {
+    var(--color3)
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--hover_color);
+    border-radius: 8px;
+    width: 7px;
+}
+
 
 ul {
     padding-left: calc(1.2rem + 7px);
@@ -37,9 +58,15 @@ ul {
 .choose_files {
     grid-column: 1 / 2;
     grid-row: 2 / 4;
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     padding: 1.2rem;
     background-color: var(--color2);
+    overflow: scroll;
+}
+
+.choose_files::-webkit-scrollbar-track {
+    background-color: var(--color2);
+    border-radius: 8px;
 }
 
 #outer {
@@ -49,11 +76,13 @@ ul {
 
 .choose_files ul {
     list-style-type: none;
+
 }
 
 .folder {
+    line-break: auto;
+    word-break: keep-all;
     cursor: pointer;
-    word-break: break-all;
     user-select: none;
 }
 
@@ -61,18 +90,6 @@ ul {
     content: var(--folder_fill);
     padding-right: 10px;
 }
-
-/*.folder:hover::before {*/
-/*    content: url(folder-fill-hover.svg)*/
-/*}*/
-
-/*.folder::before:hover{*/
-/*    fill: var(--hover_color);*/
-/*}*/
-
-/*.folder:hover {*/
-/*    color: var(--hover_color);*/
-/*}*/
 
 #toggle_folder {
     cursor: pointer;
@@ -84,7 +101,6 @@ ul {
 
 .active_folder li>a::before {
     content: var(--file_fill);
-    /*content: url("file-code-fill.svg");*/
     padding-right: 10px;
 }
 
@@ -129,7 +145,7 @@ ul {
     grid-row: 1 / 2;
     height: 70px;
     background-color: var(--color1);
-    font-size: 2.4rem;
+    font-size: 1.8rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -208,7 +224,7 @@ li a:hover{
     .navbar ul {
         position: fixed;
         top: -200%;
-        gap: 0px;
+        gap: 0;
         flex-direction: column;
         background-color: var(--color1);
         width: 100%;
@@ -246,16 +262,22 @@ li a:hover{
 .data {
     display: grid;
     grid-template-rows: 51px;
-    background-color: var(--color);
+    background-color: var(--color1);
     gap: 1px 1px;
 }
 
 .data .tabs {
     position: relative;
     display: flex;
-    font-size: 3vw;
+    font-size: 1.6rem;
     background-color: var(--color1);
     transition: background-color 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .data .tabs {
+        font-size: 3vw;
+    }
 }
 
 .data .tabs label {
@@ -271,6 +293,10 @@ li a:hover{
     transition: all 0.3s ease;
 }
 
+label:hover {
+    color: var(--hover_color)
+}
+
 #tab1:checked ~ .tabs label.tab1,
 #tab2:checked ~ .tabs label.tab2,
 #tab3:checked ~ .tabs label.tab3,
@@ -279,19 +305,6 @@ li a:hover{
     color: var(--color);
     border-bottom: 51px solid var(--hover_color);
 }
-
-/*.data .tabs .slider {*/
-/*    position: absolute;*/
-/*    height: 100%;*/
-/*    width: 25%;*/
-/*    z-index: 0;*/
-/*    left: 0;*/
-/*    bottom: 0;*/
-/*    transition: all 0.3s ease;*/
-/*    border-bottom: 50px solid orange;*/
-/*	border-left: 10px solid transparent;*/
-/*	border-right: 10px solid transparent;*/
-/*}*/
 
 .data input[type="radio"] {
     display: none;
@@ -325,4 +338,8 @@ section .content {
     display: block;
     background-color: var(--color3);
     height: 100%;
+}
+
+pre {
+    margin: 0;
 }
