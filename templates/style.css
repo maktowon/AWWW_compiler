@@ -1,8 +1,15 @@
 :root {
-    --bg: beige;
+    --color3_dm: #18122B;
+    --color1_dm: #393053;
+    --color2_dm: #443C68;
+    --color_dm: white;
+    --color1: gray;
+    --color2: beige;
+    --color3: white;
     --color: black;
-    --separate: gray;
-    --hover_dm: orange;
+    --hover_color: orange;
+    --folder_fill: url(folder-fill.svg);
+    --file_fill: url(file-code-fill.svg);
 }
 
 body {
@@ -10,8 +17,12 @@ body {
     padding: 0;
     font-family: 'Arial', serif;
     font-size: 62.5%;
-    background-color: var(--separate);
+    background-color: var(--color);
     color: var(--color);
+}
+
+ul {
+    padding-left: calc(1.2rem + 7px);
 }
 
 .wrapper {
@@ -19,15 +30,16 @@ body {
     grid-template-columns: 1fr 2fr 1fr;
     grid-template-rows: 70px 7fr 3fr;
     height: 100vh;
-    gap: 0.25rem 0.25rem;
+    gap: 1px;
 }
 
 /* CHOOSE_FILES START */
 .choose_files {
     grid-column: 1 / 2;
     grid-row: 2 / 4;
-    font-size: 1.8rem;
-    padding: 1.6rem;
+    font-size: 1.2rem;
+    padding: 1.2rem;
+    background-color: var(--color2);
 }
 
 #outer {
@@ -39,25 +51,28 @@ body {
     list-style-type: none;
 }
 
-#file {
-    user-select: none;
-    text-decoration: none;
-    color: var(--color);
-}
-
-#file:hover {
-    color: var(--hover_dm);
-}
-
 .folder {
     cursor: pointer;
     word-break: break-all;
     user-select: none;
 }
 
-.folder:hover {
-    color: var(--hover_dm);
+.folder>a::before {
+    content: var(--folder_fill);
+    padding-right: 10px;
 }
+
+/*.folder:hover::before {*/
+/*    content: url(folder-fill-hover.svg)*/
+/*}*/
+
+/*.folder::before:hover{*/
+/*    fill: var(--hover_color);*/
+/*}*/
+
+/*.folder:hover {*/
+/*    color: var(--hover_color);*/
+/*}*/
 
 #toggle_folder {
     cursor: pointer;
@@ -67,32 +82,45 @@ body {
     display: none;
 }
 
+.active_folder li>a::before {
+    content: var(--file_fill);
+    /*content: url("file-code-fill.svg");*/
+    padding-right: 10px;
+}
+
 .active_folder {
     display: block;
+}
+
+.active_folder::before {
+
 }
 /* CHOOSE_FILES END */
 
 .programme_text {
     grid-column: 2 / 3;
     grid-row: 2 / 3;
-    font-size: 1.6rem;
+    font-size: 1.2rem;
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-y: scroll;
+    background-color: var(--color3);
 }
 
 .code_window {
     grid-column: 3 / 4;
     grid-row: 2 / 3;
-    font-size: 1.6rem;
+    font-size: 1.2rem;
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-y: scroll;
+    background-color: var(--color3);
 }
 
 .data {
     grid-column: 2 / 4;
     grid-row: 3 / 4;
+    background-color: var(--color3);
 }
 
 /* NAVBAR START */
@@ -100,7 +128,7 @@ body {
     grid-column: 1 / 4;
     grid-row: 1 / 2;
     height: 70px;
-    background-color: var(--bg);
+    background-color: var(--color1);
     font-size: 2.4rem;
     display: flex;
     justify-content: space-between;
@@ -116,24 +144,27 @@ body {
     gap: 60px;
 }
 
-.navbar li {
+
+li {
     list-style: none;
     color: var(--color);
-    /*padding-right: 40px;*/
+    /*padding-right: 10px;*/
 }
 
-.navbar li a {
+li a {
     user-select: none;
     text-decoration: none;
     color: var(--color)
 }
 
-.navbar li a:hover{
-    color: var(--hover_dm);
+li a:hover{
+    color: var(--hover_color);
+    transition: all 0.3s ease;
 }
 
+
 .navbar span a:hover {
-    transition: 0.5s ease;
+    transition: all 0.3s ease;
 }
 
 #toggle_dark_mode {
@@ -141,7 +172,7 @@ body {
 }
 
 #toggle_dark_mode:hover{
-    color: var(--hover_dm);
+    color: var(--hover_color);
 }
 
 .hamburger {
@@ -176,14 +207,15 @@ body {
 
     .navbar ul {
         position: fixed;
-        top: -100%;
-        gap: 0;
+        top: -200%;
+        gap: 0px;
         flex-direction: column;
-        background-color: var(--bg);
+        background-color: var(--color1);
         width: 100%;
         text-align: center;
         justify-content: center;
         transition: 0.3s ease;
+        z-index: 1;
     }
 
     .navbar li {
@@ -193,7 +225,7 @@ body {
 
     .navbar ul.active {
         margin-top: 0;
-        top: 70px;
+        top: 71px;
         left: 0;
     }
 
@@ -203,12 +235,94 @@ body {
 }
 
 .bi:hover {
-    color: var(--hover_dm);
+    color: var(--hover_color);
 }
 /* NAVBAR END */
 
 .navbar, .choose_files, .code_window, .programme_text, .data {
-    background-color: var(--bg);
-    color: var(--color);
     transition: 0.3s ease;
+}
+
+.data {
+    display: grid;
+    grid-template-rows: 51px;
+    background-color: var(--color);
+    gap: 1px 1px;
+}
+
+.data .tabs {
+    position: relative;
+    display: flex;
+    font-size: 1.4rem;
+    background-color: var(--color1);
+    transition: all 0.3s ease;
+}
+
+.data .tabs label {
+    display: block;
+    width: 100%;
+    text-align: center;
+    line-height: 50px;
+    cursor: pointer;
+    border-bottom: 51px solid var(--color1);
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	height: 0;
+    transition: all 0.3s ease;
+}
+
+#tab1:checked ~ .tabs label.tab1,
+#tab2:checked ~ .tabs label.tab2,
+#tab3:checked ~ .tabs label.tab3,
+#tab4:checked ~ .tabs label.tab4{
+    transition: all 0.3s ease;
+    color: var(--color);
+    border-bottom: 51px solid var(--hover_color);
+}
+
+/*.data .tabs .slider {*/
+/*    position: absolute;*/
+/*    height: 100%;*/
+/*    width: 25%;*/
+/*    z-index: 0;*/
+/*    left: 0;*/
+/*    bottom: 0;*/
+/*    transition: all 0.3s ease;*/
+/*    border-bottom: 50px solid orange;*/
+/*	border-left: 10px solid transparent;*/
+/*	border-right: 10px solid transparent;*/
+/*}*/
+
+.data input[type="radio"] {
+    display: none;
+}
+
+#tab1:checked ~ .tabs .slider {
+    left: 0;
+}
+
+#tab2:checked ~ .tabs .slider {
+    left: 25%;
+}
+
+#tab3:checked ~ .tabs .slider {
+    left: 50%;
+}
+
+#tab4:checked ~ .tabs .slider {
+    left: 75%;
+}
+
+section .content {
+    font-size: 50px;
+    display: none;
+}
+
+#tab1:checked ~ section .content-1,
+#tab2:checked ~ section .content-2,
+#tab3:checked ~ section .content-3,
+#tab4:checked ~ section .content-4 {
+    display: block;
+    background-color: var(--color3);
+    height: 100%;
 }
