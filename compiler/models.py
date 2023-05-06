@@ -7,7 +7,7 @@ class Directory(models.Model):
     name = models.CharField(max_length=32)
     description = models.TextField(blank=True)
     creation_date = models.DateField(auto_now_add=True)
-    modified_date = models.DateField(auto_now=True, default=datetime.today)
+    modified_date = models.DateField(auto_now=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
 
@@ -16,7 +16,7 @@ class File(models.Model):
     name = models.CharField(max_length=32)
     description = models.TextField(blank=True)
     creation_date = models.DateField(auto_now_add=True)
-    modified_date = models.DateField(auto_now=True, default=datetime.today)
+    modified_date = models.DateField(auto_now=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     directory = models.ForeignKey(Directory, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
