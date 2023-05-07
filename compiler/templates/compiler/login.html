@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form method="POST">
+        {% csrf_token %}
+            <div> {{ message }}</div>
+        <div class="text-filed">
+            <label>
+                <input type="text" name="username" placeholder="username" />
+            </label>
+        </div>
+        <div class="text-filed">
+            <label>
+                <input type="password" name="password" placeholder="password" />
+            </label>
+        </div>
+        <input type="submit" value="login">
+        <a href="{% url 'register' %}">Create an account</a>
+    </form>
+</body>
+</html>
