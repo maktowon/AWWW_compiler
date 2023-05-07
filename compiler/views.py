@@ -1,4 +1,5 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
@@ -8,6 +9,7 @@ from .models import File, Directory
 from django.contrib.auth.forms import UserCreationForm
 
 
+@login_required(login_url='login')
 def home(request):
     root_folders = Directory.objects.filter(parent=None)
     root_files = File.objects.filter(parent=None)
@@ -43,6 +45,12 @@ def login_to(request):
         else:
             message = 'wrong pasword'
     return render(request, 'compiler/login.html', {'message': message})
+
+
+@login_required(login_url='login')
+def logout_my(request):
+    logout(request)
+    return redirect('home')
 
 
 def show_code(request, pk):
