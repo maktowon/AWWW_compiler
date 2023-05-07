@@ -9,6 +9,7 @@ class Directory(models.Model):
     creation_date = models.DateField(auto_now_add=True)
     modified_date = models.DateField(auto_now=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    parent = models.ForeignKey('Directory', on_delete=models.CASCADE, null=True, blank=True, default=None)
     active = models.BooleanField(default=True)
 
 
@@ -18,7 +19,7 @@ class File(models.Model):
     creation_date = models.DateField(auto_now_add=True)
     modified_date = models.DateField(auto_now=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    directory = models.ForeignKey(Directory, on_delete=models.CASCADE)
+    parent = models.ForeignKey(Directory, on_delete=models.CASCADE, null=True, blank=True, default=None)
     active = models.BooleanField(default=True)
 
 

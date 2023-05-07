@@ -29,163 +29,26 @@
     </nav>
     <div class="choose_files">
         <ul id="outer">
-            <li><span class="folder"><a href="#">folder 1</a></span>
+            <li><span class="folder"><a>SHOW CONTENT</a></span>
                 <ul class="nested_in_folder">
-                    <li><a href="#">Some</a></li>
-                    <li><a href="#">Random</a></li>
-                    <li><span class="folder"><a href="#">folder 2</a></span>
-                        <ul class="nested_in_folder">
-                            <li><a href="#">File</a></li>
-                            <li><a href="#">Names</a></li>
-                            <li><span class="folder"><a href="#">folder 3</a></span>
-                                <ul class="nested_in_folder">
-                                    <li><a href="#">To</a></li>
-                                    <li><a href="#">Test</a></li>
-                                    <li><a href="#">If it</a></li>
-                                    <li><a href="#">Is working</a></li>
-                                </ul>
-                            </li>
-                            <li><a href="#">Huh?</a></li>
-                        </ul>
-                    </li>
+                    {% for folder in root_folders %}
+                        {% include 'compiler/folder.html' with folder=folder %}
+                    {% endfor %}
+                    {% for file in root_files %}
+                        <li><a href="{% url 'show_code' file.id %}">{{ file.name }}</a></li>
+                    {% endfor %}
                 </ul>
             </li>
         </ul>
     </div>
     <div class="programme_text">
-        <pre>
-#include &lt;iostream&gt;
-#include &lt;bits/stdc++.h&gt;
-
-using namespace::std;
-
-const int N = 500000;
-const int MOD = 1e9 + 7;
-
-const int base = 1 &lt;&lt; 19;
-pair&lt;int, int&gt; tree[2 * base];
-
-void fill() {
-    for (int i = 0; i &lt; 2 * base; ++i) {
-        tree[i] = {N + 3, 0};
-    }
-}
-
-pair&lt;int, int&gt; query(int a, int b) {
-    if (a == b) {
-        return {tree[a + base].first, tree[a+base].second};
-    }
-    a = a - 1 + base;
-    b = b + 1 + base;
-    pair&lt;int, int&gt; res = {N + 3, 0};
-    while (a/2 != b/2) {
-        if (a % 2 == 0) {
-            int minKom = min(res.first, tree[a + 1]. first);
-            res.second = res.second * (res.first == minKom) + tree[a + 1].second * (tree[a + 1].first == minKom);
-            res.second %= MOD;
-            res.first = minKom;
-        }
-        if (b % 2 == 1) {
-            int minKom = min(res.first, tree[b - 1]. first);
-            res.second = res.second * (res.first == minKom) + tree[b - 1].second * (tree[b - 1].first == minKom);
-            res.second %= MOD;
-            res.first = minKom;
-        }
-        a /= 2;
-        b /= 2;
-    }
-    return res;
-}
-
-void add (int index, pair&lt;int, int&gt; value) {
-    index = index + base;
-    tree[index].second = value.second % MOD;
-    tree[index].first = value.first;
-    index /= 2;
-    while (index &gt; 0) {
-        if (tree[2 * index].first == tree[2 * index + 1].first) {
-            tree[index].second = tree[2 * index].second + tree[2 * index + 1].second;
-            tree[index].second %= MOD;
-            tree[index].first = tree[2 * index].first;
-        }
-        else {
-            int minKom = min(tree[2 * index].first, tree[2 * index + 1].first);
-            tree[index].second = tree[2 * index].second * (tree[2 * index].first == minKom)
-                    + tree[2 * index + 1].second * (tree[2 * index + 1].first == minKom);
-            tree[index].first = minKom;
-            tree[index].second %= MOD;
-        }
-        index /= 2;
-    }
-}
-
-int main() {
-    ios_base::sync_with_stdio(0);
-    cin.tie(0);
-    cout.tie(0);
-
-    int n, k, l;
-    cin &gt;&gt; n &gt;&gt; k &gt;&gt; l;
-    int a[n], lefts[n], prelasts[n], rights[n],  R = n - 1;
-    for (int i = 0; i &lt; n; ++i) {
-        cin &gt;&gt; a[i];
-    }
-
-    sort(a, a + n);
-
-    for (int i = n - 1; i &gt;= 0; --i) {
-        if (a[i] - l &lt; a[0]) rights[i] = -1;
-        else {
-            while (R &gt; 0 &amp;&amp; a[max(R, 0)] &gt; a[i] - l) --R;
-            rights[i] = max(R, 0);
-        }
-    }
-
-    int j = -1;
-    for (int i = 0; i &lt; n; ++i) {
-        while (j &lt; n - 2 &amp;&amp; a[j + 1] + k &lt; a[i]) ++j;
-        prelasts[i] = j;
-    }
-    for (int i = 0; i &lt; n; ++i) {
-        if (prelasts[i] != -1) lefts[i] = prelasts[prelasts[i]] + 1;
-        else lefts[i] = -1;
-    }
-
-    fill();
-
-    int first = a[0] + k;
-    for (int i = 0; i &lt; n; ++i) {
-        if (a[i] &lt;= first) {
-            add(i, {1, 1});
-        }
-        else {
-            if (lefts[i] &lt;= rights[i]) {
-                pair&lt;int, int&gt; res = query(lefts[i], rights[i]);
-                if (res.first != N + 3) {
-                    res.first++;
-                    add(i, res);
-                }
-            }
-        }
-    }
-
-    pair&lt;int, int&gt; res = {N+3, 0};
-    for (int i = 0; i &lt; n; ++i) {
-        if (a[i] + k &gt;= a[n - 1]) {
-            pair&lt;int, int&gt; q = query(i, i);
-            int minKom = min(res.first, q.first);
-            res.second = res.second * (res.first == minKom) + q.second * (q.first == minKom);
-            res.second %= MOD;
-            res.first = minKom;
-        }
-    }
-
-    cout &lt;&lt; res.first &lt;&lt; " " &lt;&lt; res.second &lt;&lt; endl;
-
-    return 0;
-}
-        </pre>
+        {% block code %}
+    </pre>
+Space for your code...
+    </pre>
+    {% endblock %}
     </div>
+
     <div class="code_window">
         <b>nie wiem co tu wpisać</b>
         Lorem ipsum dolor sitsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss

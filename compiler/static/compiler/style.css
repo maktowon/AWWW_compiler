@@ -124,16 +124,16 @@ li a:hover {
 }
 
 .nested_in_folder {
-    display: none;
+    display: block;
 }
 
-.active_folder li > a::before {
+.nested_in_folder li > a::before {
     content: var(--file_fill);
     padding-right: 10px;
 }
 
 .active_folder {
-    display: block;
+    display: none;
 }
 
 .programme_text {

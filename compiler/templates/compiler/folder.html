@@ -1,0 +1,12 @@
+<li>
+    <span class="folder"><a>{{ folder.name }}</a></span>
+    <ul class="nested_in_folder">
+        {% for x in folder.directory_set.all %}
+            {% include 'compiler/folder.html' with folder=x %}
+        {% endfor %}
+
+        {% for file in folder.file_set.all %}
+            <li><a href="{% url 'show_code' file.id %}">{{ file.name }}</a></li>
+        {% endfor %}
+    </ul>
+</li>
