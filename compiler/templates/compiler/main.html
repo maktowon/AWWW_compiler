@@ -16,9 +16,9 @@
 <div class="wrapper">
     <nav class="navbar">
         <ul>
-            <li><a href="#">File</a></li>
-            <li><a href="#">Edit</a></li>
-            <li><a href="#">Options</a></li>
+{#            <li><a href="#">File</a></li>#}
+{#            <li><a href="#">Edit</a></li>#}
+{#            <li><a href="#">Options</a></li>#}
             <li><a href="{% url 'logout' %}">Logout</a></li>
         </ul>
         <div class="hamburger">
@@ -30,7 +30,7 @@
     </nav>
     <div class="choose_files">
         <ul id="outer">
-            <li><span class="folder"><a>SHOW CONTENT</a></span>
+            <li><span class="folder"><a href="{% url 'root_folder' %}">ROOT FOLDER</a></span>
                 <ul class="nested_in_folder">
                     {% for folder in root_folders %}
                         {% if folder.active %}
@@ -39,7 +39,7 @@
                     {% endfor %}
                     {% for file in root_files %}
                         {% if file.active %}
-                        <li><a href="{% url 'show_code' file.id %}">{{ file.name }}</a></li>
+                            <li><a href="{% url 'show_code' file.id %}">{{ file.name }}</a><a class="delete" href="{% url 'file_delete' file.id %}">X</a></li>
                         {% endif %}
                     {% endfor %}
                 </ul>
@@ -48,7 +48,7 @@
     </div>
     <div class="programme_text">
         {% block code %}
-    </pre>
+    <pre>
 Space for your code...
     </pre>
     {% endblock %}

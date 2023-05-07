@@ -1,5 +1,5 @@
 <li>
-    <span class="folder"><a>{{ folder.name }}</a></span>
+    <span class="folder"><a href="{% url 'folder_details' folder.id %}">{{ folder.name }}</a><a class="delete" href="{% url 'folder_delete' folder.id %}">X</a></span>
     <ul class="nested_in_folder">
         {% for subfolder in folder.directory_set.all %}
             {% if subfolder.active %}
@@ -8,7 +8,7 @@
         {% endfor %}
         {% for file in folder.file_set.all %}
             {% if file.active %}
-                <li><a href="{% url 'show_code' file.id %}">{{ file.name }}</a></li>
+                <li><a href="{% url 'show_code' file.id %}">{{ file.name }}</a><a class="delete" href="{% url 'file_delete' file.id %}">X</a></li>
             {% endif %}
         {% endfor %}
     </ul>
