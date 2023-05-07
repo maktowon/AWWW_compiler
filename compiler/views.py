@@ -11,8 +11,8 @@ from django.contrib.auth.forms import UserCreationForm
 
 @login_required(login_url='login')
 def home(request):
-    root_folders = Directory.objects.filter(parent=None)
-    root_files = File.objects.filter(parent=None)
+    root_folders = Directory.objects.filter(parent=None).filter(owner=request.user)
+    root_files = File.objects.filter(parent=None).filter(owner=request.user)
 
     return render(request, 'compiler/main.html', {'root_folders': root_folders, 'root_files': root_files})
 
@@ -53,6 +53,7 @@ def logout_my(request):
     return redirect('home')
 
 
+@login_required(login_url='login')
 def show_code(request, pk):
     file = File.objects.get(id=pk)
     data = file.name

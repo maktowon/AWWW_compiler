@@ -33,10 +33,14 @@
             <li><span class="folder"><a>SHOW CONTENT</a></span>
                 <ul class="nested_in_folder">
                     {% for folder in root_folders %}
-                        {% include 'compiler/folder.html' with folder=folder %}
+                        {% if folder.active %}
+                            {% include 'compiler/folder.html' with folder=folder %}
+                        {% endif %}
                     {% endfor %}
                     {% for file in root_files %}
+                        {% if file.active %}
                         <li><a href="{% url 'show_code' file.id %}">{{ file.name }}</a></li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
             </li>
