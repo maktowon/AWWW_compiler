@@ -238,7 +238,8 @@ def asm_to_sections(content):
 @login_required(login_url='login')
 def run(request):
     code = ""
-    output = ""
+    error = ""
+    asm = ""
     if request.method == "POST":
         code = request.POST['codearea']
         standard = request.POST['standard']
@@ -264,11 +265,11 @@ def run(request):
             result = subprocess.run(['sdcc', '-S', 'file.c'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if result.returncode == 0:
                 output = open('file.asm', 'r').readlines()
-                output = asm_to_sections(output)
+                asm = asm_to_sections(output)
             else:
-                output = result.stderr.decode('utf-8')
+                error = result.stderr.decode('utf-8')
         except Exception as e:
-            output = str(e)
+            error = str(e)
 
         os.remove('file.c')
 
@@ -276,4 +277,4 @@ def run(request):
     root_files = File.objects.filter(parent=None).filter(owner=request.user)
 
     return render(request, 'compiler/main.html', {'root_folders': root_folders, 'root_files': root_files, 'code': code,
-                                                  'output': output})
+                                                  'output': asm, 'error': error})

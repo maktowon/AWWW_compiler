@@ -401,3 +401,15 @@ pre {
 .wrapper textarea:focus {
     outline: none;
 }
+
+.asm:hover .asm_comment {
+    color: green;
+}
+
+.asm:hover .asm_code {
+    color: red;
+}
+
+textarea {
+    color: var(--color);
+}

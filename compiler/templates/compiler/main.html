@@ -20,8 +20,7 @@
 {#            <li><a href="#">File</a></li>#}
 {#            <li><a href="#">Edit</a></li>#}
 {#            <li><a href="#">Options</a></li>#}
-{#            <li><a href="{% url 'Compile' %}">Compile</a></li>#}
-            <button type="submit" form="compile-form" class="bookmark-button" id="compile-button">KOMPILUJ</button>
+            <button type="submit" form="compile-form" class="bookmark-button" id="compile-button">COMPILE</button>
             <li><a href="{% url 'logout' %}">Logout</a></li>
         </ul>
         <div class="hamburger">
@@ -52,7 +51,9 @@
     <div class="programme_text">
         <form action="" method="POST" id="compile-form">
             {% csrf_token %}
+        <pre>
 <textarea type="text" class="content" id="code" name="codearea">{{ code }}</textarea>
+        </pre>
             <input type="hidden" id="standard" name="standard" value="">
             <input type="hidden" id="optimizations" name="optimizations" value="">
             <input type="hidden" id="processor" name="processor" value="">
@@ -64,13 +65,14 @@
     </div>
 
     <div class="code_window">
-        <pre>
-            {% autoescape off %}
-                {% for line in output %}
-                    <div style="color: green">{{ line.0 }}</div>
-                    <div style="color: red">{{ line.1 }}</div>
-                {% endfor %}
-            {% endautoescape %}
+        {% for line in output %}
+            <div class="asm">
+<pre class="asm_comment">{{ line.0 }}</pre>
+<pre class="asm_code">{{ line.1 }}</pre>
+            </div>
+        {% endfor %}
+    <pre>{{ error }}</pre>
+    <pre>
         </pre>
     </div>
     <div class="data">
