@@ -32,7 +32,21 @@ class Section(models.Model):
     end = models.IntegerField()
     file = models.ForeignKey(File, on_delete=models.CASCADE)
     content = models.TextField()
+    parent = models.ForeignKey('Section', on_delete=models.CASCADE, null=True, blank=True, default=None)
     # TODO enum types for section
-    # type =
-    # status =
-    # data =
+
+    class Type(models.TextChoices):
+        ASM_INPUT = "ASM", "Asm Input"
+        DIRECTIVE = "D", "Directive"
+        VARIABLE = "VAR", "Variable Declaration"
+        EMPTY = "EMP", "Empty Line"
+        COMMENT = "COM", "Comment"
+        PROCEDURE = "PRC", "Procedure"
+    type = models.CharField(max_length=3, choices=Type.choices, default=Type.PROCEDURE)
+
+    class Status(models.IntegerChoices):
+        OK = 0
+        ERR = 1
+        WAR = 2
+    status = models.IntegerField(choices=Status.choices, default=Status.OK)
+    data = models.IntegerField(default=None)

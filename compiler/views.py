@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
-from .models import File, Directory
+from .models import File, Directory, Section
 from django.contrib.auth.forms import UserCreationForm
 from .forms import DirectoryForm, FileForm
 import subprocess
@@ -210,7 +210,7 @@ def file_delete(request, pk):
 
 
 def asm_to_sections(content):
-    reg = r"^;[\w]*[-]+"
+    reg = r"^;[\t\w]*[-]+"
     header = ""
     section = ""
     ret = []
@@ -231,6 +231,10 @@ def asm_to_sections(content):
             header += line
         else:
             section += line
+    if header != ret[-1][0] or section != ret[-1][0]:
+        now.append(header)
+        now.append(section)
+        ret.append(now)
 
     return ret
 
@@ -267,7 +271,7 @@ def run(request):
             if result.returncode == 0:
                 output = open('file.asm', 'r').readlines()
                 asm = asm_to_sections(output)
-                if id is not None:
+                if id != '':
                     file = File.objects.get(id=id)
                     file.code = code
                     file.save()
@@ -283,3 +287,41 @@ def run(request):
 
     return render(request, 'compiler/main.html', {'root_folders': root_folders, 'root_files': root_files, 'code': code,
                                                   'output': asm, 'error': error})
+
+
+def code_to_sections(file):
+    sections_to_delete = Section.objects.filter(file=file)
+    sections_to_delete.delete()
+    lines = file.code.splitlines()
+    start_asm = r"^[\t\w]*__asm__"
+    end_asm = r"^[\t\w]*);"
+    directive = r"^[\t\w]*#"
+    comment = r"^[\t\w]*\\"
+    var_dec = r"^[\t\w]*\b(?:(?:auto\s*|const\s*|unsigned\s*|signed\s*|register\s*|volatile\s*|static\s*|void\s*|short\s*|long\s*|char\s*|int\s*|float\s*|double\s*|_Bool\s*|complex\s*)+)(?:\s+\*?\*?\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*[\[;,=)]"
+    empty = r"^\s*$"
+    start = 0
+    num = 1
+    is_asm = False
+    content = ""
+    for line in lines:
+        if is_asm and re.match(end_asm, line):
+            Section(begin=start, end=num, file=file, content=content)
+            is_asm = False
+        elif is_asm:
+            content += line
+        elif re.match(start_asm, line) is not None:
+            is_asm = True
+            start = num
+            content += line
+        elif re.match(directive, line) is not None:
+            Section(begin=num, end=num, file=file, content=line)
+        elif re.match(comment, line) is not None:
+            Section(begin=num, end=num, file=file, content=line)
+        elif re.match(var_dec, line) is not None:
+            Section(begin=num, end=num, file=file, content=line)
+        elif re.match(empty, line) is not None:
+            Section(begin=num, end=num, file=file, content=line)
+        else:
+            Section(begin=num, end=num, file=file, content=line)
+
+        num += 1
