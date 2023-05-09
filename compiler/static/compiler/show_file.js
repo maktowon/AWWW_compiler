@@ -1,8 +1,10 @@
-const content = document.querySelector(".content");
+const content = document.querySelector("#code");
 const files = document.getElementsByClassName("file");
+const fileInput = document.getElementById("file_id");
 for (let i = 0; i < files.length; ++i) {
     files[i].addEventListener("click", function() {
         content.textContent = this.getAttribute("data-file");
+        fileInput.value = this.getAttribute("file-id");
     });
 }
 

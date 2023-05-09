@@ -210,7 +210,7 @@ def file_delete(request, pk):
 
 
 def asm_to_sections(content):
-    reg = r"^;-"
+    reg = r"^;[\w]*[-]+"
     header = ""
     section = ""
     ret = []
@@ -249,6 +249,7 @@ def run(request):
         MCSoption = request.POST['MCSoption']
         STM8option = request.POST['STM8option']
         Z80option = request.POST['Z80option']
+        id = request.POST['file_id']
         cpuoption = ""
         if processor == "MCS51":
             cpuoption = "--" + MCSoption
@@ -266,6 +267,10 @@ def run(request):
             if result.returncode == 0:
                 output = open('file.asm', 'r').readlines()
                 asm = asm_to_sections(output)
+                if id is not None:
+                    file = File.objects.get(id=id)
+                    file.code = code
+                    file.save()
             else:
                 error = result.stderr.decode('utf-8')
         except Exception as e:

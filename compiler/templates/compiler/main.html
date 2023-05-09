@@ -41,7 +41,7 @@
                     {% endfor %}
                     {% for file in root_files %}
                         {% if file.active %}
-                            <li class="file" data-file="{{ file.name }}"><a>{{ file.name }}</a><a class="delete" href="{% url 'file_delete' file.id %}">X</a></li>
+                            <li class="file" data-file="{{ file.code }}" file-id="{{ file.id }}"><a>{{ file.name }}</a><a class="delete" href="{% url 'file_delete' file.id %}">X</a></li>
                         {% endif %}
                     {% endfor %}
                 </ul>
@@ -54,6 +54,7 @@
         <pre>
 <textarea type="text" class="content" id="code" name="codearea">{{ code }}</textarea>
         </pre>
+            <input type="hidden" id="file_id" name="file_id" value="">
             <input type="hidden" id="standard" name="standard" value="">
             <input type="hidden" id="optimizations" name="optimizations" value="">
             <input type="hidden" id="processor" name="processor" value="">
