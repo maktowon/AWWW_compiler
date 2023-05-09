@@ -260,7 +260,7 @@ label:hover {
     border-bottom: 52px solid var(--hover_color);
 }
 
-.data input[type="radio"] {
+.data > input[type="radio"] {
     display: none;
 }
 
@@ -281,7 +281,7 @@ label:hover {
 }
 
 section .content {
-    font-size: 50px;
+    font-size: 25px;
     display: none;
     overflow-y: scroll;
     height: 100vh;
@@ -383,4 +383,21 @@ pre {
         grid-row-start: 4;
         grid-column: 1 / 3;
     }
+}
+
+.wrapper textarea {
+    border: none;
+    background-color: transparent;
+    resize: none;
+    width: 100%;
+    height: 60vh;
+    padding: 0.5rem;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    overflow-y: auto;
+}
+
+.wrapper textarea:focus {
+    outline: none;
 }

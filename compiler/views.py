@@ -1,5 +1,3 @@
-import datetime
-
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -9,6 +7,9 @@ from django.http import HttpResponseRedirect
 from .models import File, Directory
 from django.contrib.auth.forms import UserCreationForm
 from .forms import DirectoryForm, FileForm
+import subprocess
+import os
+import re
 
 
 @login_required(login_url='login')
@@ -121,6 +122,7 @@ def folder_details(request, pk):
                                                             'contains': contains})
 
 
+@login_required(login_url='login')
 def root_folder(request):
     directory_form = {}
     file_form = {}
@@ -205,3 +207,73 @@ def file_delete(request, pk):
     file.save()
     change_mod_date_upstream(file.parent)
     return redirect('home')
+
+
+def asm_to_sections(content):
+    reg = r"^;-"
+    header = ""
+    section = ""
+    ret = []
+    now = []
+
+    matches = 0
+    for line in content:
+        if re.match(reg, line) is not None:
+            matches += 1
+        if matches % 2 == 1:
+            if header != "" and section != "":
+                now.append(header)
+                now.append(section)
+                ret.append(now)
+                header = ""
+                section = ""
+                now = []
+            header += line
+        else:
+            section += line
+
+    return ret
+
+
+@login_required(login_url='login')
+def run(request):
+    code = ""
+    output = ""
+    if request.method == "POST":
+        code = request.POST['codearea']
+        standard = request.POST['standard']
+        optimizations = request.POST['optimizations']
+        processor = request.POST['processor']
+        dependent = request.POST['dependent']
+        MCSoption = request.POST['MCSoption']
+        STM8option = request.POST['STM8option']
+        Z80option = request.POST['Z80option']
+        cpuoption = ""
+        if processor == "MCS51":
+            cpuoption = "--" + MCSoption
+        elif processor == "STM8":
+            cpuoption = "--asm=" + STM8option
+        elif processor == "Z80":
+            cpuoption = "--" + Z80option
+
+        print(standard, optimizations, processor, dependent, cpuoption)
+        try:
+            with open('file.c', 'w') as f:
+                f.write(code)
+
+            result = subprocess.run(['sdcc', '-S', 'file.c'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if result.returncode == 0:
+                output = open('file.asm', 'r').readlines()
+                output = asm_to_sections(output)
+            else:
+                output = result.stderr.decode('utf-8')
+        except Exception as e:
+            output = str(e)
+
+        os.remove('file.c')
+
+    root_folders = Directory.objects.filter(parent=None).filter(owner=request.user)
+    root_files = File.objects.filter(parent=None).filter(owner=request.user)
+
+    return render(request, 'compiler/main.html', {'root_folders': root_folders, 'root_files': root_files, 'code': code,
+                                                  'output': output})
