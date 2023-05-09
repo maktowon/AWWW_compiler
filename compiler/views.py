@@ -255,19 +255,23 @@ def run(request):
         Z80option = request.POST['Z80option']
         id = request.POST['file_id']
         cpuoption = ""
-        if processor == "MCS51":
+        if processor == "mcs51":
             cpuoption = "--" + MCSoption
-        elif processor == "STM8":
-            cpuoption = "--asm=" + STM8option
-        elif processor == "Z80":
-            cpuoption = "--" + Z80option
+        elif processor == "stm8":
+            cpuoption = "--" + STM8option
+        elif processor == "z80":
+            cpuoption = "--asm=" + Z80option
 
-        print(standard, optimizations, processor, dependent, cpuoption)
+        if len(optimizations) > 0:
+            optimizations = optimizations[:-1]
+        processor = "-m" + processor
+        # print(standard, optimizations, processor, dependent, cpuoption)
         try:
             with open('file.c', 'w') as f:
                 f.write(code)
-
-            result = subprocess.run(['sdcc', '-S', 'file.c'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print(optimizations, '-S', '-std=' + standard, '-' + processor, cpuoption)
+            result = subprocess.run(['sdcc', optimizations, '-S', '-std=' + standard, processor, cpuoption, 'file.c'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print(result, result.returncode)
             if result.returncode == 0:
                 output = open('file.asm', 'r').readlines()
                 asm = asm_to_sections(output)
@@ -275,6 +279,7 @@ def run(request):
                     file = File.objects.get(id=id)
                     file.code = code
                     file.save()
+                    code_to_sections(file)
             else:
                 error = result.stderr.decode('utf-8')
         except Exception as e:
@@ -294,9 +299,9 @@ def code_to_sections(file):
     sections_to_delete.delete()
     lines = file.code.splitlines()
     start_asm = r"^[\t\w]*__asm__"
-    end_asm = r"^[\t\w]*);"
+    end_asm = r"^*);"
     directive = r"^[\t\w]*#"
-    comment = r"^[\t\w]*\\"
+    comment = r"^[\t\w]*//"
     var_dec = r"^[\t\w]*\b(?:(?:auto\s*|const\s*|unsigned\s*|signed\s*|register\s*|volatile\s*|static\s*|void\s*|short\s*|long\s*|char\s*|int\s*|float\s*|double\s*|_Bool\s*|complex\s*)+)(?:\s+\*?\*?\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*[\[;,=)]"
     empty = r"^\s*$"
     start = 0
@@ -305,7 +310,8 @@ def code_to_sections(file):
     content = ""
     for line in lines:
         if is_asm and re.match(end_asm, line):
-            Section(begin=start, end=num, file=file, content=content)
+            s = Section(begin=start, end=num, file=file, content=content, type="ASM")
+            s.save()
             is_asm = False
         elif is_asm:
             content += line
@@ -314,14 +320,18 @@ def code_to_sections(file):
             start = num
             content += line
         elif re.match(directive, line) is not None:
-            Section(begin=num, end=num, file=file, content=line)
+            s = Section(begin=num, end=num, file=file, content=line, type="D")
+            s.save()
         elif re.match(comment, line) is not None:
-            Section(begin=num, end=num, file=file, content=line)
+            s = Section(begin=num, end=num, file=file, content=line, type="COM")
+            s.save()
         elif re.match(var_dec, line) is not None:
-            Section(begin=num, end=num, file=file, content=line)
+            s = Section(begin=num, end=num, file=file, content=line, tpye="VAR")
+            s.save()
         elif re.match(empty, line) is not None:
-            Section(begin=num, end=num, file=file, content=line)
+            s = Section(begin=num, end=num, file=file, content=line, type="EMP")
+            s.save()
         else:
-            Section(begin=num, end=num, file=file, content=line)
-
+            s = Section(begin=num, end=num, file=file, content=line, type="PRC")
+            s.save()
         num += 1

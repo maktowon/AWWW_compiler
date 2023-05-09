@@ -20,8 +20,23 @@
 {#            <li><a href="#">File</a></li>#}
 {#            <li><a href="#">Edit</a></li>#}
 {#            <li><a href="#">Options</a></li>#}
-            <button type="submit" form="compile-form" class="bookmark-button" id="compile-button">COMPILE</button>
-            <li><a href="{% url 'logout' %}">Logout</a></li>
+            <button type="submit" class="button" form="compile-form" id="compile-button">COMPILE</button>
+            <button id="download_button" class="button">DOWNLOAD</button>
+
+<script>
+  const downloadButton = document.getElementById('download_button');
+  downloadButton.addEventListener('click', () => {
+    const asmContent = document.getElementById('download_asm').innerText;
+    const blob = new Blob([asmContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'compiled.asm';
+    link.click();
+  });
+</script>
+
+            <button class="button"><a style="color: white; text-decoration: none;" href="{% url 'logout' %}">LOGOUT</a></button>
         </ul>
         <div class="hamburger">
             <span class="bar"></span>
@@ -65,7 +80,7 @@
         </form>
     </div>
 
-    <div class="code_window">
+    <div class="code_window" id="download_asm">
         {% for line in output %}
             <div class="asm">
 <pre class="asm_comment">{{ line.0 }}</pre>
@@ -104,9 +119,9 @@
             </div>
             <div class="content content-3" id="t3">
                 <div style="display: flex; justify-content: space-between; padding-right: 100px; padding-left: 100px">
-                <label><input type="radio" name="processor" value="MCS51">MCS51</label>
-                <label><input type="radio" name="processor" value="STM8">STM8</label>
-                <label><input type="radio" name="processor" value="Z80">Z80</label>
+                <label><input type="radio" name="processor" value="mcs51">MCS51</label>
+                <label><input type="radio" name="processor" value="stm8">STM8</label>
+                <label><input type="radio" name="processor" value="z80">Z80</label>
                 </div>
             </div>
             <div class="content content-4" id="t4">

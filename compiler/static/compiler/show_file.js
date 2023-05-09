@@ -51,3 +51,11 @@ Z80option.forEach(function (radio) {
         document.querySelector('#Z80option').value = this.value;
     });
 });
+
+// var fileContent = document.getElementById("download_asm")
+// var fileName = 'compiled.asm';
+// const blob = new Blob([fileContent], { type: 'text/plain' });
+// const a = document.createElement('a');
+// a.setAttribute('download', fileName);
+// a.setAttribute('href', window.URL.createObjectURL(blob));
+// a.click();

@@ -33,7 +33,6 @@ class Section(models.Model):
     file = models.ForeignKey(File, on_delete=models.CASCADE)
     content = models.TextField()
     parent = models.ForeignKey('Section', on_delete=models.CASCADE, null=True, blank=True, default=None)
-    # TODO enum types for section
 
     class Type(models.TextChoices):
         ASM_INPUT = "ASM", "Asm Input"
@@ -49,4 +48,4 @@ class Section(models.Model):
         ERR = 1
         WAR = 2
     status = models.IntegerField(choices=Status.choices, default=Status.OK)
-    data = models.IntegerField(default=None)
+    data = models.IntegerField(blank=True, default=None, null=True)
