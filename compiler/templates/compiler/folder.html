@@ -1,4 +1,4 @@
-<li>KOMPILUJ
+<li>
     <span class="folder"><a href="{% url 'folder_details' folder.id %}">{{ folder.name }}</a><a class="delete" href="{% url 'folder_delete' folder.id %}">X</a></span>
     <ul class="nested_in_folder">
         {% for subfolder in folder.directory_set.all %}

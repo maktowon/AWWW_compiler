@@ -276,13 +276,10 @@ def run(request):
 
         optimizations = optimizations[:-1]
         processor = "-m" + processor
-        print(standard, optimizations, processor, cpuoption)
         try:
             with open('file.c', 'w') as f:
                 f.write(code)
-            print(optimizations, '-S', '-std=' + standard, '-' + processor, cpuoption)
             result = subprocess.run(['sdcc', optimizations, '-S', '-std=' + standard, processor, cpuoption, 'file.c'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print(result, result.returncode)
             if result.returncode == 0:
                 output = open('file.asm', 'r').readlines()
                 asm = asm_to_sections(output)
@@ -298,8 +295,6 @@ def run(request):
 
         os.remove('file.c')
 
-
-
     return render(request, 'compiler/main.html', {'root_folders': root_folders, 'root_files': root_files, 'code': code,
                                                   'output': asm, 'error': error})
 
@@ -313,7 +308,7 @@ def code_to_sections(file):
     directive = r"^[\s]*#"
     comment = r"^[\s]*//"
     var_dec = r"^[\s]*\b(?:(?:auto\s*|const\s*|unsigned\s*|signed\s*|register\s*|volatile\s*|static\s*|void\s*|short\s*|long\s*|char\s*|int\s*|float\s*|double\s*|_Bool\s*|complex\s*)+)(?:\s+\*?\*?\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*[\[;,=)]"
-    empty = r"^\s*$"
+    empty = r"^[\s]*$"
     start = 0
     num = 1
     is_asm = False
