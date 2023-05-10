@@ -17,25 +17,23 @@
 <div class="wrapper">
     <nav class="navbar">
         <ul>
-{#            <li><a href="#">File</a></li>#}
-{#            <li><a href="#">Edit</a></li>#}
-{#            <li><a href="#">Options</a></li>#}
             <button type="submit" class="button" form="compile-form" id="compile-button">COMPILE</button>
+
             <button id="download_button" class="button">DOWNLOAD</button>
+            <script>
+              const downloadButton = document.getElementById('download_button');
+              downloadButton.addEventListener('click', () => {
+                const asmContent = document.getElementById('download_asm').innerText;
+                const blob = new Blob([asmContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'compiled.asm';
+                link.click();
+              });
+            </script>
 
-<script>
-  const downloadButton = document.getElementById('download_button');
-  downloadButton.addEventListener('click', () => {
-    const asmContent = document.getElementById('download_asm').innerText;
-    const blob = new Blob([asmContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'compiled.asm';
-    link.click();
-  });
-</script>
-
+            <button class="button"><a style="color: white; text-decoration: none;" href="{% url 'edit_sections' %}">EDIT SECTIONS</a></button>
             <button class="button"><a style="color: white; text-decoration: none;" href="{% url 'logout' %}">LOGOUT</a></button>
         </ul>
         <div class="hamburger">

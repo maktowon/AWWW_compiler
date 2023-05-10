@@ -46,7 +46,7 @@ def login_to(request):
             login(request, user_authenticate)
             return redirect('home')
         else:
-            message = 'wrong pasword'
+            message = 'wrong password'
     return render(request, 'compiler/login.html', {'message': message})
 
 
@@ -210,7 +210,7 @@ def file_delete(request, pk):
 
 
 def asm_to_sections(content):
-    reg = r"^;[\t\w]*[-]+"
+    reg = r"^;[\s]*[-]+"
     header = ""
     section = ""
     ret = []
@@ -244,15 +244,27 @@ def run(request):
     code = ""
     error = ""
     asm = ""
+    root_folders = Directory.objects.filter(parent=None).filter(owner=request.user)
+    root_files = File.objects.filter(parent=None).filter(owner=request.user)
     if request.method == "POST":
         code = request.POST['codearea']
         standard = request.POST['standard']
         optimizations = request.POST['optimizations']
         processor = request.POST['processor']
-        dependent = request.POST['dependent']
         MCSoption = request.POST['MCSoption']
         STM8option = request.POST['STM8option']
         Z80option = request.POST['Z80option']
+        if processor == "":
+            error = "PLEASE SELECT PROCESSOR"
+            return render(request, 'compiler/main.html',
+                          {'root_folders': root_folders, 'root_files': root_files, 'code': code,
+                           'output': asm, 'error': error})
+        if optimizations == "":
+            error = "PLEASE SELECT OPTIMIZATION"
+            return render(request, 'compiler/main.html',
+                          {'root_folders': root_folders, 'root_files': root_files, 'code': code,
+                           'output': asm, 'error': error})
+
         id = request.POST['file_id']
         cpuoption = ""
         if processor == "mcs51":
@@ -262,10 +274,9 @@ def run(request):
         elif processor == "z80":
             cpuoption = "--asm=" + Z80option
 
-        if len(optimizations) > 0:
-            optimizations = optimizations[:-1]
+        optimizations = optimizations[:-1]
         processor = "-m" + processor
-        # print(standard, optimizations, processor, dependent, cpuoption)
+        print(standard, optimizations, processor, cpuoption)
         try:
             with open('file.c', 'w') as f:
                 f.write(code)
@@ -287,8 +298,7 @@ def run(request):
 
         os.remove('file.c')
 
-    root_folders = Directory.objects.filter(parent=None).filter(owner=request.user)
-    root_files = File.objects.filter(parent=None).filter(owner=request.user)
+
 
     return render(request, 'compiler/main.html', {'root_folders': root_folders, 'root_files': root_files, 'code': code,
                                                   'output': asm, 'error': error})
@@ -298,16 +308,17 @@ def code_to_sections(file):
     sections_to_delete = Section.objects.filter(file=file)
     sections_to_delete.delete()
     lines = file.code.splitlines()
-    start_asm = r"^[\t\w]*__asm__"
+    start_asm = r"^[\s]*__asm__"
     end_asm = r"^*);"
-    directive = r"^[\t\w]*#"
-    comment = r"^[\t\w]*//"
-    var_dec = r"^[\t\w]*\b(?:(?:auto\s*|const\s*|unsigned\s*|signed\s*|register\s*|volatile\s*|static\s*|void\s*|short\s*|long\s*|char\s*|int\s*|float\s*|double\s*|_Bool\s*|complex\s*)+)(?:\s+\*?\*?\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*[\[;,=)]"
+    directive = r"^[\s]*#"
+    comment = r"^[\s]*//"
+    var_dec = r"^[\s]*\b(?:(?:auto\s*|const\s*|unsigned\s*|signed\s*|register\s*|volatile\s*|static\s*|void\s*|short\s*|long\s*|char\s*|int\s*|float\s*|double\s*|_Bool\s*|complex\s*)+)(?:\s+\*?\*?\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*[\[;,=)]"
     empty = r"^\s*$"
     start = 0
     num = 1
     is_asm = False
     content = ""
+    last_type = "NONE"
     for line in lines:
         if is_asm and re.match(end_asm, line):
             s = Section(begin=start, end=num, file=file, content=content, type="ASM")
@@ -320,18 +331,54 @@ def code_to_sections(file):
             start = num
             content += line
         elif re.match(directive, line) is not None:
-            s = Section(begin=num, end=num, file=file, content=line, type="D")
-            s.save()
+            if last_type == "D":
+                content += line
+            else:
+                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
+                s.save()
+                start = num
+                content = line
+                last_type = "D"
         elif re.match(comment, line) is not None:
-            s = Section(begin=num, end=num, file=file, content=line, type="COM")
-            s.save()
+            if last_type == "COM":
+                content += line
+            else:
+                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
+                s.save()
+                start = num
+                content = line
+                last_type = "COM"
         elif re.match(var_dec, line) is not None:
-            s = Section(begin=num, end=num, file=file, content=line, tpye="VAR")
-            s.save()
+            if last_type == "VAR":
+                content += line
+            else:
+                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
+                s.save()
+                start = num
+                content = line
+                last_type = "VAR"
         elif re.match(empty, line) is not None:
-            s = Section(begin=num, end=num, file=file, content=line, type="EMP")
-            s.save()
+            if last_type == "EMP":
+                content += line
+            else:
+                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
+                s.save()
+                start = num
+                content = line
+                last_type = "EMP"
         else:
-            s = Section(begin=num, end=num, file=file, content=line, type="PRC")
-            s.save()
+            if last_type == "PRC":
+                content += line
+            else:
+                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
+                s.save()
+                start = num
+                content = line
+                last_type = "PRC"
         num += 1
+    s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
+    s.save()
+
+
+def edit_sections(request):
+    return render(request, 'compiler/edit_sections.html')

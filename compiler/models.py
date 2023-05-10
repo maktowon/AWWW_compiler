@@ -21,7 +21,7 @@ class File(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     parent = models.ForeignKey(Directory, on_delete=models.CASCADE, null=True, blank=True, default=None)
     active = models.BooleanField(default=True)
-    code = models.TextField(blank=True, default=None, null=True)
+    code = models.TextField(blank=True, default="// type your code here", null=True)
 
 
 class Section(models.Model):

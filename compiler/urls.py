@@ -11,4 +11,5 @@ urlpatterns = [
     path('folder/<int:pk>', views.folder_details, name='folder_details'),
     path('delete_folder/<int:pk>', views.folder_delete, name='folder_delete'),
     path('delete_file/<int:pk>', views.file_delete, name='file_delete'),
+    path('edit_sections/', views.edit_sections, name='edit_sections'),
 ]
