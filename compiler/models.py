@@ -12,6 +12,20 @@ class Directory(models.Model):
     parent = models.ForeignKey('Directory', on_delete=models.CASCADE, null=True, blank=True, default=None)
     active = models.BooleanField(default=True)
 
+    def set_folder_inactive(self):
+        self.active = False
+        self.save()
+        for file in self.file_set.all():
+            file.active = False
+            file.save()
+        for subfolder in self.directory_set.all():
+            subfolder.set_folder_inactive()
+
+    def change_mod_date_upstream(self):
+        self.save()
+        if self.parent is not None:
+            self.parent.change_mod_date_upstream()
+
 
 class File(models.Model):
     name = models.CharField(max_length=32)

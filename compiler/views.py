@@ -5,11 +5,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from .models import File, Directory, Section
+from . import helpers
 from django.contrib.auth.forms import UserCreationForm
 from .forms import DirectoryForm, FileForm
 import subprocess
 import os
-import re
 
 
 @login_required(login_url='login')
@@ -95,7 +95,7 @@ def folder_details(request, pk):
                 new_directory.owner = request.user
                 new_directory.parent = folder
                 new_directory.save()
-                change_mod_date_upstream(folder)
+                folder.change_mod_date_upstream()
                 return HttpResponseRedirect(path + '?submitted=True')
 
         if 'add_file' in request.POST:
@@ -107,7 +107,7 @@ def folder_details(request, pk):
                 new_file.owner = request.user
                 new_file.parent = folder
                 new_file.save()
-                change_mod_date_upstream(folder)
+                folder.change_mod_date_upstream()
                 return HttpResponseRedirect(path + '?submitted=True')
     else:
         directory_form = DirectoryForm
@@ -134,7 +134,7 @@ def root_folder(request):
             directory_form = DirectoryForm(request.POST)
             if directory_form.is_valid():
                 if Directory.objects.filter(name=directory_form['name'].value()).filter(parent=None).filter(
-                        active=True).count() > 0:
+                        active=True).filter(owner=request.user).count() > 0:
                     return HttpResponseRedirect('?contains=True')
                 new_directory = directory_form.save(commit=False)
                 new_directory.owner = request.user
@@ -145,7 +145,7 @@ def root_folder(request):
             file_form = FileForm(request.POST)
             if file_form.is_valid():
                 if File.objects.filter(name=file_form['name'].value()).filter(parent=None).filter(
-                        active=True).count() > 0:
+                        active=True).filter(owner=request.user).count() > 0:
                     return HttpResponseRedirect('?contains=True')
                 new_file = file_form.save(commit=False)
                 new_file.owner = request.user
@@ -164,22 +164,6 @@ def root_folder(request):
                                                          'contains': contains})
 
 
-def change_mod_date_upstream(folder):
-    if folder is not None:
-        folder.save()
-        change_mod_date_upstream(folder.parent)
-
-
-def set_folder_inactive(folder):
-    folder.active = False
-    folder.save()
-    for file in folder.file_set.all():
-        file.active = False
-        file.save()
-    for subfolder in folder.directory_set.all():
-        set_folder_inactive(subfolder)
-
-
 @login_required(login_url='login')
 def folder_delete(request, pk):
     try:
@@ -189,8 +173,8 @@ def folder_delete(request, pk):
     if folder.owner != request.user:
         return render(request, 'compiler/not_your.html')
 
-    set_folder_inactive(folder)
-    change_mod_date_upstream(folder.parent)
+    folder.set_folder_inactive()
+    folder.change_mod_date_upstream()
     return redirect('home')
 
 
@@ -205,38 +189,8 @@ def file_delete(request, pk):
 
     file.active = False
     file.save()
-    change_mod_date_upstream(file.parent)
+    file.parent.change_mod_date_upstream()
     return redirect('home')
-
-
-def asm_to_sections(content):
-    reg = r"^;[\s]*[-]+"
-    header = ""
-    section = ""
-    ret = []
-    now = []
-
-    matches = 0
-    for line in content:
-        if re.match(reg, line) is not None:
-            matches += 1
-        if matches % 2 == 1:
-            if header != "" and section != "":
-                now.append(header)
-                now.append(section)
-                ret.append(now)
-                header = ""
-                section = ""
-                now = []
-            header += line
-        else:
-            section += line
-    if header != ret[-1][0] or section != ret[-1][0]:
-        now.append(header)
-        now.append(section)
-        ret.append(now)
-
-    return ret
 
 
 @login_required(login_url='login')
@@ -282,12 +236,12 @@ def run(request):
             result = subprocess.run(['sdcc', optimizations, '-S', '-std=' + standard, processor, cpuoption, 'file.c'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if result.returncode == 0:
                 output = open('file.asm', 'r').readlines()
-                asm = asm_to_sections(output)
+                asm = helpers.asm_to_sections(output)
                 if id != '':
                     file = File.objects.get(id=id)
                     file.code = code
                     file.save()
-                    code_to_sections(file)
+                    helpers.code_to_sections(file)
             else:
                 error = result.stderr.decode('utf-8')
         except Exception as e:
@@ -299,80 +253,7 @@ def run(request):
                                                   'output': asm, 'error': error})
 
 
-def code_to_sections(file):
-    sections_to_delete = Section.objects.filter(file=file)
-    sections_to_delete.delete()
-    lines = file.code.splitlines()
-    start_asm = r"^[\s]*__asm__"
-    end_asm = r"^*);"
-    directive = r"^[\s]*#"
-    comment = r"^[\s]*//"
-    var_dec = r"^[\s]*\b(?:(?:auto\s*|const\s*|unsigned\s*|signed\s*|register\s*|volatile\s*|static\s*|void\s*|short\s*|long\s*|char\s*|int\s*|float\s*|double\s*|_Bool\s*|complex\s*)+)(?:\s+\*?\*?\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*[\[;,=)]"
-    empty = r"^[\s]*$"
-    start = 0
-    num = 1
-    is_asm = False
-    content = ""
-    last_type = "NONE"
-    for line in lines:
-        if is_asm and re.match(end_asm, line):
-            s = Section(begin=start, end=num, file=file, content=content, type="ASM")
-            s.save()
-            is_asm = False
-        elif is_asm:
-            content += line
-        elif re.match(start_asm, line) is not None:
-            is_asm = True
-            start = num
-            content += line
-        elif re.match(directive, line) is not None:
-            if last_type == "D":
-                content += line
-            else:
-                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-                s.save()
-                start = num
-                content = line
-                last_type = "D"
-        elif re.match(comment, line) is not None:
-            if last_type == "COM":
-                content += line
-            else:
-                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-                s.save()
-                start = num
-                content = line
-                last_type = "COM"
-        elif re.match(var_dec, line) is not None:
-            if last_type == "VAR":
-                content += line
-            else:
-                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-                s.save()
-                start = num
-                content = line
-                last_type = "VAR"
-        elif re.match(empty, line) is not None:
-            if last_type == "EMP":
-                content += line
-            else:
-                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-                s.save()
-                start = num
-                content = line
-                last_type = "EMP"
-        else:
-            if last_type == "PRC":
-                content += line
-            else:
-                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-                s.save()
-                start = num
-                content = line
-                last_type = "PRC"
-        num += 1
-    s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-    s.save()
+
 
 
 def edit_sections(request):
