@@ -253,8 +253,5 @@ def run(request):
                                                   'output': asm, 'error': error})
 
 
-
-
-
 def edit_sections(request):
     return render(request, 'compiler/edit_sections.html')

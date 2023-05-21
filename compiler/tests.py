@@ -2,6 +2,10 @@ import datetime
 
 from django.test import TestCase
 from .views import *
+from django.test import RequestFactory, Client
+from django.urls import reverse
+from .forms import DirectoryForm, FileForm
+from django.template.loader import render_to_string
 
 
 def new_user():
@@ -147,5 +151,78 @@ class FileTest(TestCase):
 
 
 class DirectoryAndFileTest(TestCase):
-    pass
+    def setUp(self):
+        user = new_user()
+        dir1 = Directory.objects.create(name="dir1", owner=user)
+        dir2 = Directory.objects.create(name="dir2", parent=dir1, owner=user)
+        File.objects.create(name="outer", parent=dir1, owner=user)
+        File.objects.create(name="inner", parent=dir2, owner=user)
 
+    def test_complex_delete(self):
+        dir1 = Directory.objects.get(id=1)
+        dir1.set_folder_inactive()
+
+        dir2 = Directory.objects.get(id=2)
+        f1 = File.objects.get(id=1)
+        f2 = File.objects.get(id=2)
+        self.assertFalse(dir1.active)
+        self.assertFalse(dir2.active)
+        self.assertFalse(f1.active)
+        self.assertFalse(f2.active)
+
+
+class DirectoryFormTestCase(TestCase):
+    def setUp(self):
+        self.user = new_user()
+        self.data = {'name': 'Test Directory', 'description': 'Test Description'}
+
+    def test_directory_form_valid(self):
+        form = DirectoryForm(data=self.data)
+        self.assertTrue(form.is_valid())
+
+    def test_directory_form_invalid(self):
+        invalid_data = {'name': '', 'description': 'Test Description'}
+        form = DirectoryForm(data=invalid_data)
+        self.assertFalse(form.is_valid())
+
+    def test_directory_form_save(self):
+        form = DirectoryForm(data=self.data)
+        self.assertTrue(form.is_valid())
+        directory = form.save(commit=False)
+        directory.owner = self.user
+        directory.save()
+        self.assertEqual(Directory.objects.count(), 1)
+        self.assertEqual(directory.name, 'Test Directory')
+        self.assertEqual(directory.description, 'Test Description')
+        self.assertEqual(directory.owner, self.user)
+
+
+class FileFormTestCase(TestCase):
+    def setUp(self):
+        self.user = new_user()
+        self.directory = Directory.objects.create(name='Test Directory', owner=self.user)
+        self.data = {'name': 'Test File', 'description': 'Test Description'}
+
+    def test_file_form_valid(self):
+        form = FileForm(data=self.data)
+        self.assertTrue(form.is_valid())
+
+    def test_file_form_invalid(self):
+        invalid_data = {'name': '', 'description': 'Test Description'}
+        form = FileForm(data=invalid_data)
+        self.assertFalse(form.is_valid())
+
+    def test_file_form_save(self):
+        form = FileForm(data=self.data)
+        self.assertTrue(form.is_valid())
+        file = form.save(commit=False)
+        file.owner = self.user
+        file.parent = self.directory
+        file.save()
+        self.assertEqual(File.objects.count(), 1)
+        self.assertEqual(file.name, 'Test File')
+        self.assertEqual(file.description, 'Test Description')
+        self.assertEqual(file.owner, self.user)
+        self.assertEqual(file.parent, self.directory)
+
+# TODO testowanie views
