@@ -405,6 +405,7 @@ pre {
 
 .asm:hover .asm_comment {
     color: green;
+    cursor: pointer;
 }
 
 .asm:hover .asm_code {

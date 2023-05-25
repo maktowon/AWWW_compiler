@@ -226,3 +226,64 @@ class FileFormTestCase(TestCase):
         self.assertEqual(file.parent, self.directory)
 
 # TODO testowanie views
+class CompilerViewsTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.login(username='testuser', password='testpassword')
+
+    def test_register_view(self):
+        response = self.client.get(reverse('register'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'compiler/register.html')
+
+        response = self.client.post(reverse('register'), data={'username': 'newuser', 'password1': 'newpassword', 'password2': 'newpassword'})
+        self.assertEqual(response.status_code, 302)  # Redirect after successful registration
+        self.assertRedirects(response, reverse('login_to'))
+
+    def test_login_view(self):
+        response = self.client.get(reverse('login'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'compiler/login.html')
+
+        response = self.client.post(reverse('login'), data={'username': 'testuser', 'password': 'testpassword'})
+        self.assertEqual(response.status_code, 302)  # Redirect after successful login
+        self.assertRedirects(response, reverse('home'))
+
+    def test_logout_view(self):
+        response = self.client.get(reverse('logout'))
+        self.assertEqual(response.status_code, 302)  # Redirect after logout
+        self.assertRedirects(response, reverse('login'))
+
+    def test_folder_details_view(self):
+        folder = Directory.objects.create(name='Test Folder', owner=self.user)
+        response = self.client.get(reverse('folder_details', args=[folder.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'compiler/folder_details.html')
+
+    def test_root_folder_view(self):
+        response = self.client.get(reverse('root_folder'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'compiler/root_folder.html')
+
+    def test_folder_delete_view(self):
+        folder = Directory.objects.create(name='Test Folder', owner=self.user)
+        response = self.client.get(reverse('folder_delete', args=[folder.pk]))
+        self.assertEqual(response.status_code, 302)  # Redirect after delete
+        self.assertRedirects(response, reverse('home'))
+
+    def test_file_delete_view(self):
+        file = File.objects.create(name='test.c', owner=self.user)
+        response = self.client.get(reverse('file_delete', args=[file.pk]))
+        self.assertEqual(response.status_code, 302)  # Redirect after delete
+        self.assertRedirects(response, reverse('home'))
+
+    def test_run_view(self):
+        response = self.client.post(reverse('home'), data={'codearea': 'int main() { return 0; }', 'standard': 'c89', 'optimizations': 'O1', 'processor': 'mcs51', 'MCSoption': 'small', 'STM8option': '', 'Z80option': '', 'file_id': ''})
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, {'asm': '', 'error': ''})
+
+    def test_edit_sections_view(self):
+        response = self.client.get(reverse('edit_sections'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'compiler/edit_sections.html')

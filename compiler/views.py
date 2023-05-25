@@ -231,8 +231,10 @@ def run(request):
         except Exception as e:
             error = str(e)
 
-        os.remove(str(name))
-        os.remove(str(name[:-2] + '.asm'))
+        if os.path.exists(str(name)):
+            os.remove(str(name))
+        if os.path.exists(str(name[:-2] + '.asm')):
+            os.remove(str(name[:-2] + '.asm'))
         return JsonResponse({'asm': asm, 'error': error})
 
     return render(request, 'compiler/main.html', {'root_folders': root_folders, 'root_files': root_files, 'code': code,

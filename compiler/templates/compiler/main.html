@@ -79,19 +79,11 @@
     </div>
 
     <div class="code_window" id="download_asm">
-        {% for line in output %}
-            <div class="asm">
-<pre class="asm_comment">{{ line.0 }}</pre>
-<pre class="asm_code">{{ line.1 }}</pre>
-            </div>
-        {% endfor %}
-    <pre>{{ error }}</pre>
-    <pre>
-        </pre>
+
     </div>
 <script>
-const compileForm = document.getElementById('compile-form');
-compileForm.addEventListener('submit', (event) => {
+  const compileForm = document.getElementById('compile-form');
+  compileForm.addEventListener('submit', (event) => {
     event.preventDefault();
 
     const formData = new FormData(compileForm);
@@ -104,7 +96,6 @@ compileForm.addEventListener('submit', (event) => {
     })
     .then(response => response.json())
     .then(data => {
-        // Aktualizuj zawartość diva "download_asm" na podstawie danych zwrotnych
         const downloadAsmDiv = document.getElementById('download_asm');
         downloadAsmDiv.innerHTML = '';
 
@@ -121,6 +112,15 @@ compileForm.addEventListener('submit', (event) => {
             lineDiv.appendChild(commentPre);
             lineDiv.appendChild(codePre);
             downloadAsmDiv.appendChild(lineDiv);
+
+            // Dodaj obsługę kliknięcia
+            commentPre.addEventListener('click', () => {
+                if (codePre.classList.contains('hidden')) {
+                    codePre.classList.remove('hidden');
+                } else {
+                    codePre.classList.add('hidden');
+                }
+            });
         }
 
         const errorPre = document.createElement('pre');
@@ -130,8 +130,14 @@ compileForm.addEventListener('submit', (event) => {
     .catch(error => {
         console.error('some error:', error);
     });
-});
+  });
 </script>
+
+<style>
+  .hidden {
+    display: none;
+  }
+</style>
     <div class="data">
         <input class="tab" type="radio" name="slider" id="tab1" checked>
         <input class="tab" type="radio" name="slider" id="tab2">
@@ -188,5 +194,10 @@ compileForm.addEventListener('submit', (event) => {
         </section>
     </div>
 </div>
+<div class="asm">
+  <pre class="asm_comment">Komentarz</pre>
+  <pre class="asm_code">Kod</pre>
+</div>
+
 </body>
 </html>
