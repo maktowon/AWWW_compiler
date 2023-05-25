@@ -1,5 +1,8 @@
 <li>
-    <span class="folder"><a href="{% url 'folder_details' folder.id %}">{{ folder.name }}</a><a class="delete" href="{% url 'folder_delete' folder.id %}">X</a></span>
+    <span class="folder">
+    <a href="{% url 'folder_details' folder.id %}">{{ folder.name }}</a>
+    <a class="delete" href="{% url 'folder_delete' folder.id %}" data-id="{{ folder.id }}">X</a>
+</span>
     <ul class="nested_in_folder">
         {% for subfolder in folder.directory_set.all %}
             {% if subfolder.active %}
@@ -8,8 +11,55 @@
         {% endfor %}
         {% for file in folder.file_set.all %}
             {% if file.active %}
-                <li class="file" data-file="{{ file.code }}" file-id="{{ file.id }}"><a>{{ file.name }}</a><a class="delete" href="{% url 'file_delete' file.id %}">X</a></li>
+                <li class="file" data-file="{{ file.code }}" file-id="{{ file.id }}">
+    <a>{{ file.name }}</a>
+    <a class="delete" href="{% url 'file_delete' file.id %}" data-id="{{ file.id }}">X</a>
+</li>
             {% endif %}
         {% endfor %}
     </ul>
 </li>
+
+
+<script>
+  // Obsługa zdarzenia kliknięcia na przyciski "X"
+  const deleteButtons = document.querySelectorAll('.delete-button');
+  deleteButtons.forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault(); // Zapobieganie domyślnej akcji przycisku
+
+      const id = button.dataset.id;
+      const isFile = button.closest('.file') !== null;
+
+      const url = isFile ? '/file-delete/' + id : '/folder-delete/' + id;
+
+      fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            // Usunięcie odpowiedniego elementu z interfejsu
+            const element = isFile ? button.closest('.file') : button.closest('.folder');
+            element.remove();
+          } else {
+            // Wyświetlenie komunikatu o błędzie
+            console.log(data.message);
+          }
+        })
+        .catch((error) => {
+          console.log('Request error:', error);
+        });
+    });
+  });
+
+  // Funkcja pomocnicza do pobierania wartości ciasteczka CSRF
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+</script>
