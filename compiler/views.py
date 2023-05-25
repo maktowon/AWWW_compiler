@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from .models import File, Directory, Section
 from . import helpers
 from django.contrib.auth.forms import UserCreationForm
@@ -11,13 +11,6 @@ from .forms import DirectoryForm, FileForm
 import subprocess
 import os
 
-
-@login_required(login_url='login')
-def home(request):
-    root_folders = Directory.objects.filter(parent=None).filter(owner=request.user)
-    root_files = File.objects.filter(parent=None).filter(owner=request.user)
-
-    return render(request, 'compiler/main.html', {'root_folders': root_folders, 'root_files': root_files})
 
 
 def register(request):
@@ -54,21 +47,6 @@ def login_to(request):
 def logout_my(request):
     logout(request)
     return redirect('home')
-
-
-@login_required(login_url='login')
-def show_code(request, pk):
-    try:
-        file = File.objects.get(id=pk, active=True)
-    except ObjectDoesNotExist:
-        return render(request, 'compiler/not_valid.html')
-    if file.owner != request.user:
-        return render(request, 'compiler/not_your.html')
-    data = file.name
-    root_folders = Directory.objects.filter(parent=None)
-    root_files = File.objects.filter(parent=None)
-    return render(request, 'compiler/show_code.html',
-                  {'root_folders': root_folders, 'root_files': root_files, 'data': data})
 
 
 @login_required(login_url='login')
@@ -189,7 +167,8 @@ def file_delete(request, pk):
 
     file.active = False
     file.save()
-    file.parent.change_mod_date_upstream()
+    if file.parent is not None:
+        file.parent.change_mod_date_upstream()
     return redirect('home')
 
 
@@ -198,8 +177,8 @@ def run(request):
     code = ""
     error = ""
     asm = ""
-    root_folders = Directory.objects.filter(parent=None).filter(owner=request.user)
-    root_files = File.objects.filter(parent=None).filter(owner=request.user)
+    root_folders = Directory.objects.filter(parent=None).filter(owner=request.user).filter(active=True)
+    root_files = File.objects.filter(parent=None).filter(owner=request.user).filter(active=True)
     if request.method == "POST":
         code = request.POST['codearea']
         standard = request.POST['standard']
@@ -220,6 +199,11 @@ def run(request):
                            'output': asm, 'error': error})
 
         id = request.POST['file_id']
+        try:
+            name = File.objects.get(id=id).name
+        except Exception:
+            name = 'file'
+        name += '.c'
         cpuoption = ""
         if processor == "mcs51":
             cpuoption = "--" + MCSoption
@@ -231,11 +215,11 @@ def run(request):
         optimizations = optimizations[:-1]
         processor = "-m" + processor
         try:
-            with open('file.c', 'w') as f:
+            with open(name, 'w') as f:
                 f.write(code)
-            result = subprocess.run(['sdcc', optimizations, '-S', '-std=' + standard, processor, cpuoption, 'file.c'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(['sdcc', optimizations, '-S', '-std=' + standard, processor, cpuoption, name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if result.returncode == 0:
-                output = open('file.asm', 'r').readlines()
+                output = open(name[:-2] + '.asm', 'r').readlines()
                 asm = helpers.asm_to_sections(output)
                 if id != '':
                     file = File.objects.get(id=id)
@@ -247,7 +231,9 @@ def run(request):
         except Exception as e:
             error = str(e)
 
-        os.remove('file.c')
+        os.remove(str(name))
+        os.remove(str(name[:-2] + '.asm'))
+        return JsonResponse({'asm': asm, 'error': error})
 
     return render(request, 'compiler/main.html', {'root_folders': root_folders, 'root_files': root_files, 'code': code,
                                                   'output': asm, 'error': error})

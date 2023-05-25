@@ -89,6 +89,49 @@
     <pre>
         </pre>
     </div>
+<script>
+const compileForm = document.getElementById('compile-form');
+compileForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(compileForm);
+
+    // Wykonaj żądanie HTTP, przekazując formData
+
+    fetch('{% url "home" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Aktualizuj zawartość diva "download_asm" na podstawie danych zwrotnych
+        const downloadAsmDiv = document.getElementById('download_asm');
+        downloadAsmDiv.innerHTML = '';
+
+        const outputLines = data.asm;
+        for (let i = 0; i < outputLines.length; i++) {
+            const lineDiv = document.createElement('div');
+            lineDiv.classList.add('asm');
+            const commentPre = document.createElement('pre');
+            commentPre.classList.add('asm_comment');
+            commentPre.textContent = outputLines[i][0];
+            const codePre = document.createElement('pre');
+            codePre.classList.add('asm_code');
+            codePre.textContent = outputLines[i][1];
+            lineDiv.appendChild(commentPre);
+            lineDiv.appendChild(codePre);
+            downloadAsmDiv.appendChild(lineDiv);
+        }
+
+        const errorPre = document.createElement('pre');
+        errorPre.textContent = data.error;
+        downloadAsmDiv.appendChild(errorPre);
+    })
+    .catch(error => {
+        console.error('some error:', error);
+    });
+});
+</script>
     <div class="data">
         <input class="tab" type="radio" name="slider" id="tab1" checked>
         <input class="tab" type="radio" name="slider" id="tab2">
