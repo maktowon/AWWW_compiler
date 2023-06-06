@@ -364,8 +364,6 @@ class CompilerViewsTestCase(TestCase):
         folder = Directory.objects.create(name='Test Folder', owner=self.user)
         response = self.client.post(reverse('home'), data={'codearea': '#include <stdio.h> int main() { return 0; //komentarz }', 'standard': 'C89', 'optimizations': '--opt-code-size', 'processor': 'mcs51', 'MCSoption': 'model-small', 'STM8option': '', 'Z80option': '', 'file_id': '1'})
         self.assertEqual(response.status_code, 200)
-        # self.assertTrue(response.content[2] == '')
-        # self.assertJSONEqual(response.content, {'asm': '', 'error': ''})
 
     def test_edit_sections_view(self):
         response = self.client.get(reverse('edit_sections'))
