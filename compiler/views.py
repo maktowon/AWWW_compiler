@@ -29,7 +29,6 @@ def register(request):
     return render(request, 'compiler/register.html', {'message': message})
 
 
-@login_required(login_url='login')
 def login_to(request):
     message = ''
     if request.method == 'POST':
