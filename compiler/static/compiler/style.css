@@ -218,7 +218,6 @@ a.delete:hover {
 }
 
 
-
 .data .tabs {
     position: relative;
     display: flex;
@@ -254,7 +253,9 @@ label:hover {
 #tab1:checked ~ .tabs label.tab1,
 #tab2:checked ~ .tabs label.tab2,
 #tab3:checked ~ .tabs label.tab3,
-#tab4:checked ~ .tabs label.tab4 {
+#tab4:checked ~ .tabs label.tab4,
+#tab5:checked ~ .tabs label.tab5,
+#tab6:checked ~ .tabs label.tab6 {
     transition: all 0.3s ease;
     color: var(--color);
     border-bottom: 52px solid var(--hover_color);
@@ -269,15 +270,23 @@ label:hover {
 }
 
 #tab2:checked ~ .tabs .slider {
-    left: 25%;
+    left: 20%;
 }
 
 #tab3:checked ~ .tabs .slider {
-    left: 50%;
+    left: 40%;
 }
 
 #tab4:checked ~ .tabs .slider {
-    left: 75%;
+    left: 60%;
+}
+
+#tab5:checked ~ .tabs .slider {
+    left: 80%
+}
+
+#tab6:checked ~ .tabs .slider {
+    left: 100%
 }
 
 section .content {
@@ -297,7 +306,9 @@ section h1 {
 #tab1:checked ~ section .content-1,
 #tab2:checked ~ section .content-2,
 #tab3:checked ~ section .content-3,
-#tab4:checked ~ section .content-4 {
+#tab4:checked ~ section .content-4,
+#tab5:checked ~ section .content-5,
+#tab6:checked ~ section .content-6 {
     margin: 0;
     padding: 0;
     display: block;
@@ -405,6 +416,7 @@ pre {
 
 .asm:hover .asm_comment {
     color: green;
+    cursor: pointer;
 }
 
 .asm:hover .asm_code {
