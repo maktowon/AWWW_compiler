@@ -1,1 +1,1 @@
-web gunicorn AWWW_compiler_django.wsgi
+web gunicorn AWWW_compiler.wsgi
