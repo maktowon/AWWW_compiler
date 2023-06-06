@@ -1,1 +1,1 @@
-web gunicorn AWWW_compiler.wsgi.application --log-file -
+web gunicorn AWWW_compiler_django.wsgi
