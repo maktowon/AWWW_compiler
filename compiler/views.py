@@ -153,13 +153,14 @@ def folder_delete(request, pk):
     try:
         folder = Directory.objects.get(id=pk, active=True)
     except ObjectDoesNotExist:
-        return render(request, 'compiler/not_valid.html')
+        return JsonResponse({'success': False, 'message': 'Folder does not exist.'})
+
     if folder.owner != request.user:
-        return render(request, 'compiler/not_your.html')
+        return JsonResponse({'success': False, 'message': 'You are not the owner of this folder.'})
 
     folder.set_folder_inactive()
     folder.change_mod_date_upstream()
-    return redirect('home')
+    return JsonResponse({'success': True, 'message': 'Folder deleted successfully.'})
 
 
 @login_required(login_url='login')
@@ -167,15 +168,16 @@ def file_delete(request, pk):
     try:
         file = File.objects.get(id=pk, active=True)
     except ObjectDoesNotExist:
-        return render(request, 'compiler/not_valid.html')
+        return JsonResponse({'success': False, 'message': 'File does not exist.'})
+
     if file.owner != request.user:
-        return render(request, 'compiler/not_your.html')
+        return JsonResponse({'success': False, 'message': 'You are not the owner of this file.'})
 
     file.active = False
     file.save()
     if file.parent is not None:
         file.parent.change_mod_date_upstream()
-    return redirect('home')
+    return JsonResponse({'success': True, 'message': 'File deleted successfully.'})
 
 
 @login_required(login_url='login')

@@ -46,7 +46,7 @@
     <div class="choose_files">
     <button id="refresh_button">Refresh</button>
         <ul id="outer">
-            <li><span class="folder"><a href="{% url 'root_folder' %}">ROOT FOLDER</a></span>
+            <li><span class="folder" id="root_folder"><a>ROOT FOLDER</a></span>
                 <ul class="nested_in_folder">
                     {% for folder in root_folders %}
                         {% if folder.active %}
@@ -62,6 +62,41 @@
             </li>
         </ul>
     </div>
+{#<script>#}
+{#  const rootFolder = document.getElementById('root_folder');#}
+{#  rootFolder.addEventListener('click', () => {#}
+{#    const dialog = document.createElement('dialog');#}
+{##}
+{#    const xhr = new XMLHttpRequest();#}
+{#    xhr.open('GET', '{% url "root_folder" %}', true); // Zmień to na odpowiedni endpoint#}
+{#    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');#}
+{##}
+{#    xhr.onreadystatechange = function () {#}
+{#      if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {#}
+{#        const response = xhr.responseText;#}
+{##}
+{#        // Ustawianie zawartości dialogu#}
+{#        dialog.innerHTML = response;#}
+{##}
+{#        // Otwieranie dialogu#}
+{#        dialog.showModal();#}
+{#      }#}
+{#    };#}
+{##}
+{#    xhr.send();#}
+{##}
+{#    // Obsługa zdarzenia zamknięcia dialogu#}
+{#    dialog.addEventListener('close', () => {#}
+{#      // Usunięcie dialogu po zamknięciu#}
+{#      dialog.remove();#}
+{#    });#}
+{##}
+{#    // Dodawanie dialogu do strony#}
+{#    document.body.appendChild(dialog);#}
+{#  });#}
+{#</script>#}
+
+
     <div class="programme_text">
         <form action="" method="POST" id="compile-form">
             {% csrf_token %}
