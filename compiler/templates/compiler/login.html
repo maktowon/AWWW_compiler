@@ -3,17 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        form {
+            width: 300px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .text-field {
+            margin-bottom: 15px;
+        }
+
+        .text-field input[type="text"],
+        .text-field input[type="password"] {
+            margin-top: 5px;
+        }
+
+        .message {
+            color: red;
+            margin-bottom: 10px;
+        }
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #333;
+        }
+    </style>
 </head>
 <body>
     <form method="POST">
         {% csrf_token %}
-            <div> {{ message }}</div>
-        <div class="text-filed">
+        <div class="message">{{ message }}</div>
+        <div class="text-field">
             <label>
                 <input type="text" name="username" placeholder="username" />
             </label>
         </div>
-        <div class="text-filed">
+        <div class="text-field">
             <label>
                 <input type="password" name="password" placeholder="password" />
             </label>

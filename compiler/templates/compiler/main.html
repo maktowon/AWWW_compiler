@@ -10,7 +10,7 @@
     <script src="{% static 'compiler/darkmode.js' %}" defer></script>
     <script src="{% static 'compiler/hamburger.js' %}" defer></script>
     <script src="{% static 'compiler/folder.js' %}" defer></script>
-    <script src="{% static 'compiler/show_file.js' %}" defer></script>
+
 </head>
 
 <body>
@@ -44,6 +44,7 @@
         <span class="change_mode"><i class="bi bi-moon-stars-fill" id="toggle_dark_mode"></i></span>
     </nav>
     <div class="choose_files">
+    <button id="refresh_button">Refresh</button>
         <ul id="outer">
             <li><span class="folder"><a href="{% url 'root_folder' %}">ROOT FOLDER</a></span>
                 <ul class="nested_in_folder">
@@ -88,8 +89,6 @@
 
     const formData = new FormData(compileForm);
 
-    // Wykonaj żądanie HTTP, przekazując formData
-
     fetch('{% url "home" %}', {
         method: 'POST',
         body: formData
@@ -113,7 +112,6 @@
             lineDiv.appendChild(codePre);
             downloadAsmDiv.appendChild(lineDiv);
 
-            // Dodaj obsługę kliknięcia
             commentPre.addEventListener('click', () => {
                 if (codePre.classList.contains('hidden')) {
                     codePre.classList.remove('hidden');
@@ -138,16 +136,21 @@
     display: none;
   }
 </style>
+
     <div class="data">
         <input class="tab" type="radio" name="slider" id="tab1" checked>
         <input class="tab" type="radio" name="slider" id="tab2">
         <input class="tab" type="radio" name="slider" id="tab3">
         <input class="tab" type="radio" name="slider" id="tab4">
+        <input class="tab" type="radio" name="slider" id="tab5">
+        <input class="tab" type="radio" name="slider" id="tab6">
         <nav class="tabs">
-            <label for="tab1" class="tab1">Tab 1</label>
-            <label for="tab2" class="tab2">Tab 2</label>
-            <label for="tab3" class="tab3">Tab 3</label>
-            <label for="tab4" class="tab4">Tab 4</label>
+            <label for="tab1" class="tab1">Standard</label>
+            <label for="tab2" class="tab2">Optimization</label>
+            <label for="tab3" class="tab3">Processor</label>
+            <label for="tab4" class="tab4">Options</label>
+            <label for="tab5" class="tab5">Files</label>
+            <label for="tab6" class="tab6">Sections</label>
         </nav>
         <section>
             <div class="content content-1" id="t1">
@@ -191,13 +194,100 @@
                 <input type="radio" id="z80_3" name="Z80option" value="isas"><label for="z80_3">isas</label>
                 </div>
             </div>
+            <div class="content content-5" id="t5">
+                    {% if contains %}
+              <div> That name is already used inside this directory. </div>
+            {% else %}
+              {% if submitted %}
+                Everything went properly.
+              {% else %}
+                <div class="add-component-container">
+                  <div>
+                    Directory:
+                    <form action="add_dir" method="POST">
+                      {% csrf_token %}
+                      {{ directory_form.as_p }}
+                      <input type="submit" name="add_dir" value="Add dir">
+                    </form>
+                  </div>
+                  <br>
+                  <div>
+                    File:
+                    <form action="add_file" method="POST">
+                      {% csrf_token %}
+                      {{ file_form.as_p }}
+                      <input type="submit" name="add_file" value="Add file">
+                    </form>
+                  </div>
+                </div>
+              {% endif %}
+            {% endif %}
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+            </div>
+            <div class="content content-6" id="t6">
+
+            </div>
         </section>
     </div>
 </div>
-<div class="asm">
-  <pre class="asm_comment">Komentarz</pre>
-  <pre class="asm_code">Kod</pre>
-</div>
+<script>
+    function renderFoldersAndFiles(folders, files, container) {
+        var ulElement = document.createElement("ul");
+        ulElement.className = "nested_in_folder"
+        container.appendChild(ulElement);
 
+        folders.forEach(function(folder) {
+            var liElement = document.createElement("li");
+            ulElement.appendChild(liElement);
+
+            var spanElement = document.createElement("span");
+            spanElement.className = "folder";
+            liElement.appendChild(spanElement);
+
+            var folderLink = document.createElement("a");
+            folderLink.href = folder.url;
+            folderLink.textContent = folder.name;
+            spanElement.appendChild(folderLink);
+
+            var deleteLink = document.createElement("a");
+            deleteLink.className = "delete";
+
+            deleteLink.textContent = "X";
+            spanElement.appendChild(deleteLink);
+
+            if (folder.nested_folders.length > 0 || folder.files.length > 0) {
+                var nestedContainer = document.createElement("ul");
+                liElement.appendChild(nestedContainer);
+                renderFoldersAndFiles(folder.nested_folders, folder.files, nestedContainer);
+            }
+        });
+
+        files.forEach(function(file) {
+            var liElement = document.createElement("li");
+            liElement.className = "file";
+            liElement.dataset.file = file.code;
+            liElement.dataset.fileId = file.id;
+            liElement.setAttribute("data-file", "{{ file.code }}")
+            ulElement.appendChild(liElement);
+
+            var fileLink = document.createElement("a");
+            fileLink.textContent = file.name;
+            liElement.appendChild(fileLink);
+
+            var deleteLink = document.createElement("a");
+            deleteLink.className = "delete";
+            var id = file.id;
+            var delete_folder = "{% url 'file_delete2' %}"
+            delete_folder += id;
+            deleteLink.href = delete_folder;
+            deleteLink.textContent = "X";
+            liElement.appendChild(deleteLink);
+        });
+    }
+
+
+</script>
+<script src="{% static 'compiler/show_file.js' %}" defer></script>
 </body>
 </html>

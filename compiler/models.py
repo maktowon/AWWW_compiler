@@ -12,6 +12,9 @@ class Directory(models.Model):
     parent = models.ForeignKey('Directory', on_delete=models.CASCADE, null=True, blank=True, default=None)
     active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.name
+
     def set_folder_inactive(self):
         self.active = False
         self.save()
@@ -37,16 +40,20 @@ class File(models.Model):
     active = models.BooleanField(default=True)
     code = models.TextField(blank=True, default="// type your code here", null=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Section(models.Model):
     name = models.CharField(max_length=32, blank=True)
-    description = models.TextField(blank=True)
+    description = models.CharField(blank=True, max_length=150)
     creation_date = models.DateField(auto_now_add=True)
     begin = models.IntegerField()
     end = models.IntegerField()
     file = models.ForeignKey(File, on_delete=models.CASCADE)
     content = models.TextField()
     parent = models.ForeignKey('Section', on_delete=models.CASCADE, null=True, blank=True, default=None)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Type(models.TextChoices):
         ASM_INPUT = "ASM", "Asm Input"
@@ -63,3 +70,7 @@ class Section(models.Model):
         WAR = 2
     status = models.IntegerField(choices=Status.choices, default=Status.OK)
     data = models.IntegerField(blank=True, default=None, null=True)
+
+    def __str__(self):
+        return str(self.file) + " " + self.name
+

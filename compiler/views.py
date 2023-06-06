@@ -4,26 +4,32 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect, JsonResponse
-from .models import File, Directory, Section
 from . import helpers
-from django.contrib.auth.forms import UserCreationForm
-from .forms import DirectoryForm, FileForm
+from .forms import *
 import subprocess
 import os
 
 
-
 def register(request):
+    message = ''
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'compiler/register.html', {'form_register': form})
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if password != confirm_password:
+            message = 'Passwords do not match.'
+        elif User.objects.filter(username=username).exists():
+            message = 'Username already taken.'
+        else:
+            user = User.objects.create_user(username=username, password=password)
+            login(request, user)
+            return redirect('home')
+
+    return render(request, 'compiler/register.html', {'message': message})
 
 
+@login_required(login_url='login')
 def login_to(request):
     message = ''
     if request.method == 'POST':
@@ -88,8 +94,8 @@ def folder_details(request, pk):
                 folder.change_mod_date_upstream()
                 return HttpResponseRedirect(path + '?submitted=True')
     else:
-        directory_form = DirectoryForm
-        file_form = FileForm
+        directory_form = DirectoryForm()
+        file_form = FileForm()
         if 'contains' in request.GET:
             contains = True
         if 'submitted' in request.GET:
@@ -130,8 +136,8 @@ def root_folder(request):
                 new_file.save()
                 return HttpResponseRedirect('?submitted=True')
     else:
-        directory_form = DirectoryForm
-        file_form = FileForm
+        directory_form = DirectoryForm()
+        file_form = FileForm()
         if 'contains' in request.GET:
             contains = True
         if 'submitted' in request.GET:
@@ -189,14 +195,10 @@ def run(request):
         Z80option = request.POST['Z80option']
         if processor == "":
             error = "PLEASE SELECT PROCESSOR"
-            return render(request, 'compiler/main.html',
-                          {'root_folders': root_folders, 'root_files': root_files, 'code': code,
-                           'output': asm, 'error': error})
+            return JsonResponse({'asm': asm, 'error': error})
         if optimizations == "":
             error = "PLEASE SELECT OPTIMIZATION"
-            return render(request, 'compiler/main.html',
-                          {'root_folders': root_folders, 'root_files': root_files, 'code': code,
-                           'output': asm, 'error': error})
+            return JsonResponse({'asm': asm, 'error': error})
 
         id = request.POST['file_id']
         try:
@@ -237,9 +239,37 @@ def run(request):
             os.remove(str(name[:-2] + '.asm'))
         return JsonResponse({'asm': asm, 'error': error})
 
+    directory_form = NewDirectoryForm()
+    directory_form.fields['parent'].queryset = Directory.objects.filter(owner=request.user, active=True)
+    file_form = NewFileForm()
+    file_form.fields['parent'].queryset = Directory.objects.filter(owner=request.user, active=True)
+    section_form = SectionForm()
+    section_form.fields['file'].queryset = File.objects.filter(owner=request.user, active=True)
+    section_form.fields['parent'].queryset = Section.objects.filter(owner=request.user)
     return render(request, 'compiler/main.html', {'root_folders': root_folders, 'root_files': root_files, 'code': code,
-                                                  'output': asm, 'error': error})
+                                                  'asm': asm, 'error': error, 'directory_form': directory_form,
+                                                  'file_form': file_form, 'section_form': section_form})
+
+
+def create_section(request):
+    if request.method == 'POST':
+        section_form = SectionForm(request.POST)
+
+        if section_form.is_valid():
+            new_section = section_form.save(commit=False)
+            new_section.owner = request.user
+            new_section.save()
 
 
 def edit_sections(request):
-    return render(request, 'compiler/edit_sections.html')
+    section_form = SectionForm()
+    section_form.fields['file'].queryset = File.objects.filter(owner=request.user, active=True)
+    section_form.fields['parent'].queryset = Section.objects.filter(owner=request.user)
+    if request.method == 'POST':
+        section_form = SectionForm(request.POST)
+
+        if section_form.is_valid():
+            new_section = section_form.save(commit=False)
+            new_section.owner = request.user
+            new_section.save()
+    return render(request, 'compiler/create_section.html', {'section_form': section_form})

@@ -33,11 +33,11 @@ def asm_to_sections(content):
 
 
 def code_to_sections(file):
-    sections_to_delete = Section.objects.filter(file=file)
+    sections_to_delete = Section.objects.filter(file=file).all()
     sections_to_delete.delete()
     lines = file.code.splitlines()
     start_asm = r"^[\s]*__asm__"
-    end_asm = r"^*);"
+    end_asm = r"^[\s]*\);"
     directive = r"^[\s]*#"
     comment = r"^[\s]*//"
     var_dec = r"^[\s]*\b(?:(?:auto\s*|const\s*|unsigned\s*|signed\s*|register\s*|volatile\s*|static\s*|void\s*|short\s*|long\s*|char\s*|int\s*|float\s*|double\s*|_Bool\s*|complex\s*)+)(?:\s+\*?\*?\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*[\[;,=)]"
@@ -48,13 +48,17 @@ def code_to_sections(file):
     content = ""
     last_type = "NONE"
     for line in lines:
-        if is_asm and re.match(end_asm, line):
-            s = Section(begin=start, end=num, file=file, content=content, type="ASM")
+        if is_asm and re.match(end_asm, line) is not None:
+            content += line
+            s = Section(begin=start, end=num, file=file, content=content, type="ASM", owner=file.owner)
             s.save()
             is_asm = False
         elif is_asm:
             content += line
         elif re.match(start_asm, line) is not None:
+            if last_type != "NONE":
+                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type, owner=file.owner)
+                s.save()
             is_asm = True
             start = num
             content += line
@@ -62,8 +66,9 @@ def code_to_sections(file):
             if last_type == "D":
                 content += line
             else:
-                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-                s.save()
+                if last_type != "NONE":
+                    s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type, owner=file.owner)
+                    s.save()
                 start = num
                 content = line
                 last_type = "D"
@@ -71,8 +76,9 @@ def code_to_sections(file):
             if last_type == "COM":
                 content += line
             else:
-                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-                s.save()
+                if last_type != "NONE":
+                    s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type, owner=file.owner)
+                    s.save()
                 start = num
                 content = line
                 last_type = "COM"
@@ -80,8 +86,9 @@ def code_to_sections(file):
             if last_type == "VAR":
                 content += line
             else:
-                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-                s.save()
+                if last_type != "NONE":
+                    s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type, owner=file.owner)
+                    s.save()
                 start = num
                 content = line
                 last_type = "VAR"
@@ -89,8 +96,9 @@ def code_to_sections(file):
             if last_type == "EMP":
                 content += line
             else:
-                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-                s.save()
+                if last_type != "NONE":
+                    s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type, owner=file.owner)
+                    s.save()
                 start = num
                 content = line
                 last_type = "EMP"
@@ -98,11 +106,12 @@ def code_to_sections(file):
             if last_type == "PRC":
                 content += line
             else:
-                s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
-                s.save()
+                if last_type != "NONE":
+                    s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type, owner=file.owner)
+                    s.save()
                 start = num
                 content = line
                 last_type = "PRC"
         num += 1
-    s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type)
+    s = Section(begin=start, end=num - 1, file=file, content=content, type=last_type, owner=file.owner)
     s.save()

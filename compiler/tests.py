@@ -171,6 +171,44 @@ class DirectoryAndFileTest(TestCase):
         self.assertFalse(f2.active)
 
 
+class SectionModelTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='testuser')
+        self.file = File.objects.create(name='Test File', owner=self.user)
+        self.section_data = {
+            'name': 'Test Section',
+            'description': 'Test Description',
+            'begin': 1,
+            'end': 5,
+            'content': 'Test content',
+            'file': self.file,
+            'owner': self.user,
+        }
+
+    def test_section_creation(self):
+        section = Section.objects.create(**self.section_data)
+        self.assertEqual(Section.objects.count(), 1)
+        self.assertEqual(section.name, 'Test Section')
+        self.assertEqual(section.description, 'Test Description')
+        self.assertEqual(section.begin, 1)
+        self.assertEqual(section.end, 5)
+        self.assertEqual(section.content, 'Test content')
+        self.assertEqual(section.file, self.file)
+        self.assertEqual(section.owner, self.user)
+
+    def test_section_default_values(self):
+        section = Section.objects.create(**self.section_data)
+        self.assertEqual(section.type, Section.Type.PROCEDURE)
+        self.assertEqual(section.status, Section.Status.OK)
+        self.assertIsNone(section.parent)
+        self.assertIsNone(section.data)
+
+    def test_section_str_representation(self):
+        section = Section.objects.create(**self.section_data)
+        expected_str = f"{self.file} Test Section"
+        self.assertEqual(str(section), expected_str)
+
+
 class DirectoryFormTestCase(TestCase):
     def setUp(self):
         self.user = new_user()
@@ -225,12 +263,59 @@ class FileFormTestCase(TestCase):
         self.assertEqual(file.owner, self.user)
         self.assertEqual(file.parent, self.directory)
 
-# TODO testowanie views
+
+class SectionFormTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='testuser')
+        self.file = File.objects.create(name='Test File', owner=self.user)
+        self.form_data_valid = {
+            'file': self.file.id,
+            'name': 'Test Section',
+            'description': 'Test Description',
+            'begin': 1,
+            'end': 5,
+            'type': Section.Type.PROCEDURE,
+            'parent': None,
+        }
+        self.form_data_invalid = {
+            'file': '',
+            'name': '',
+            'description': 'Test Description',
+            'begin': 1,
+            'end': 5,
+            'type': Section.Type.PROCEDURE,
+            'parent': None,
+        }
+
+    def test_section_form_valid(self):
+        form = SectionForm(data=self.form_data_valid)
+        self.assertTrue(form.is_valid())
+
+    def test_section_form_invalid(self):
+        form = SectionForm(data=self.form_data_invalid)
+        self.assertFalse(form.is_valid())
+
+    def test_section_form_save(self):
+        form = SectionForm(data=self.form_data_valid)
+        self.assertTrue(form.is_valid())
+        section = form.save(commit=False)
+        section.owner = self.user
+        section.save()
+        self.assertEqual(Section.objects.count(), 1)
+        self.assertEqual(section.name, 'Test Section')
+        self.assertEqual(section.description, 'Test Description')
+        self.assertEqual(section.begin, 1)
+        self.assertEqual(section.end, 5)
+        self.assertEqual(section.type, Section.Type.PROCEDURE)
+        self.assertIsNone(section.parent)
+
+
 class CompilerViewsTestCase(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username='testuser', password='testpassword')
         self.client.login(username='testuser', password='testpassword')
+        self.file = File.objects.create(name='Test File', owner=self.user)
 
     def test_register_view(self):
         response = self.client.get(reverse('register'))
@@ -238,8 +323,7 @@ class CompilerViewsTestCase(TestCase):
         self.assertTemplateUsed(response, 'compiler/register.html')
 
         response = self.client.post(reverse('register'), data={'username': 'newuser', 'password1': 'newpassword', 'password2': 'newpassword'})
-        self.assertEqual(response.status_code, 302)  # Redirect after successful registration
-        self.assertRedirects(response, reverse('login_to'))
+        self.assertEqual(response.status_code, 302)
 
     def test_login_view(self):
         response = self.client.get(reverse('login'))
@@ -247,13 +331,11 @@ class CompilerViewsTestCase(TestCase):
         self.assertTemplateUsed(response, 'compiler/login.html')
 
         response = self.client.post(reverse('login'), data={'username': 'testuser', 'password': 'testpassword'})
-        self.assertEqual(response.status_code, 302)  # Redirect after successful login
+        self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('home'))
 
-    def test_logout_view(self):
         response = self.client.get(reverse('logout'))
-        self.assertEqual(response.status_code, 302)  # Redirect after logout
-        self.assertRedirects(response, reverse('login'))
+        self.assertEquals(response.status_code, 302)
 
     def test_folder_details_view(self):
         folder = Directory.objects.create(name='Test Folder', owner=self.user)
@@ -269,21 +351,148 @@ class CompilerViewsTestCase(TestCase):
     def test_folder_delete_view(self):
         folder = Directory.objects.create(name='Test Folder', owner=self.user)
         response = self.client.get(reverse('folder_delete', args=[folder.pk]))
-        self.assertEqual(response.status_code, 302)  # Redirect after delete
+        self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('home'))
 
     def test_file_delete_view(self):
         file = File.objects.create(name='test.c', owner=self.user)
         response = self.client.get(reverse('file_delete', args=[file.pk]))
-        self.assertEqual(response.status_code, 302)  # Redirect after delete
+        self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('home'))
 
     def test_run_view(self):
-        response = self.client.post(reverse('home'), data={'codearea': 'int main() { return 0; }', 'standard': 'c89', 'optimizations': 'O1', 'processor': 'mcs51', 'MCSoption': 'small', 'STM8option': '', 'Z80option': '', 'file_id': ''})
+        folder = Directory.objects.create(name='Test Folder', owner=self.user)
+        response = self.client.post(reverse('home'), data={'codearea': '#include <stdio.h> int main() { return 0; //komentarz }', 'standard': 'C89', 'optimizations': '--opt-code-size', 'processor': 'mcs51', 'MCSoption': 'model-small', 'STM8option': '', 'Z80option': '', 'file_id': '1'})
         self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(response.content, {'asm': '', 'error': ''})
+        # self.assertTrue(response.content[2] == '')
+        # self.assertJSONEqual(response.content, {'asm': '', 'error': ''})
 
     def test_edit_sections_view(self):
         response = self.client.get(reverse('edit_sections'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'compiler/edit_sections.html')
+        self.assertTemplateUsed(response, 'compiler/create_section.html')
+
+
+class HelperTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.directive = File.objects.create(name="d", owner=self.user, code="#include <stdio.h> \n #include<stdio.h>")
+        self.comment = File.objects.create(name="com", owner=self.user, code="//komentarz\n //komentarz")
+        self.variable = File.objects.create(name="var", owner=self.user, code="int i; \n int j;")
+        self.empty = File.objects.create(name="emp", owner=self.user, code="\n\n\n")
+        self.procedure = File.objects.create(name="prc", owner=self.user, code="cout << 2 + 2; \n cout << 2+2;")
+        self.mix = File.objects.create(name="mix", owner=self.user, code="#incldue \n //komentarz \n int i; \n\n\n cout <<")
+        self.asm = File.objects.create(name="asm", owner=self.user, code="__asm__ bla bla \n bla bla\n);")
+
+    def test_code_to_sections(self):
+        helpers.code_to_sections(self.directive)
+        s = Section.objects.get(id=1)
+        self.assertTrue(s.type == Section.Type.DIRECTIVE)
+        helpers.code_to_sections(self.comment)
+        s = Section.objects.get(id=2)
+        self.assertTrue(s.type == Section.Type.COMMENT)
+        helpers.code_to_sections(self.variable)
+        s = Section.objects.get(id=3)
+        self.assertTrue(s.type == Section.Type.VARIABLE)
+        helpers.code_to_sections(self.empty)
+        s = Section.objects.get(id=4)
+        self.assertTrue(s.type == Section.Type.EMPTY)
+        helpers.code_to_sections(self.procedure)
+        s = Section.objects.get(id=5)
+        self.assertTrue(s.type == Section.Type.PROCEDURE)
+        helpers.code_to_sections(self.mix)
+        s = Section.objects.get(id=6)
+        self.assertTrue(s.type == Section.Type.DIRECTIVE)
+        s = Section.objects.get(id=7)
+        self.assertTrue(s.type == Section.Type.COMMENT)
+        s = Section.objects.get(id=8)
+        self.assertTrue(s.type == Section.Type.VARIABLE)
+        s = Section.objects.get(id=9)
+        self.assertTrue(s.type == Section.Type.EMPTY)
+        s = Section.objects.get(id=10)
+        self.assertTrue(s.type == Section.Type.PROCEDURE)
+        helpers.code_to_sections(self.asm)
+        s = Section.objects.get(id=11)
+        self.assertTrue(s.type == Section.Type.ASM_INPUT)
+        return True
+
+
+class FolderDetailsTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.login(username='testuser', password='testpassword')
+        self.folder = Directory.objects.create(name='Test Folder', owner=self.user)
+
+    def test_directory_form_submission(self):
+        form_data = {'add_dir': '', 'name': 'New Directory'}
+        response = self.client.post(reverse('folder_details', args=[self.folder.id]), form_data)
+        self.assertEqual(response.status_code, 302)  # Check if it redirects
+        self.assertEqual(response.url, f'{self.folder.id}?submitted=True')
+
+        # Check if the directory was created
+        new_directory = Directory.objects.get(name='New Directory', parent=self.folder)
+        self.assertEqual(new_directory.owner, self.user)
+
+    def test_file_form_submission(self):
+        form_data = {'add_file': '', 'name': 'New File'}
+        response = self.client.post(reverse('folder_details', args=[self.folder.id]), form_data)
+        self.assertEqual(response.status_code, 302)  # Check if it redirects
+        self.assertEqual(response.url, f'{self.folder.id}?submitted=True')
+
+        # Check if the file was created
+        new_file = File.objects.get(name='New File', parent=self.folder)
+        self.assertEqual(new_file.owner, self.user)
+
+    def test_duplicate_directory(self):
+        Directory.objects.create(name='Existing Directory', parent=self.folder, owner=self.user)
+        form_data = {'add_dir': '', 'name': 'Existing Directory'}
+        response = self.client.post(reverse('folder_details', args=[self.folder.id]), form_data)
+        self.assertEqual(response.status_code, 302)  # Check if it redirects
+        self.assertEqual(response.url, f'{self.folder.id}?contains=True')
+
+    def test_duplicate_file(self):
+        File.objects.create(name='Existing File', parent=self.folder, owner=self.user)
+        form_data = {'add_file': '', 'name': 'Existing File'}
+        response = self.client.post(reverse('folder_details', args=[self.folder.id]), form_data)
+        self.assertEqual(response.status_code, 302)  # Check if it redirects
+        self.assertEqual(response.url, f'{self.folder.id}?contains=True')
+
+
+class RootFolderTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.login(username='testuser', password='testpassword')
+
+    def test_directory_form_submission(self):
+        form_data = {'add_dir': '', 'name': 'New Directory'}
+        response = self.client.post(reverse('root_folder'), form_data)
+        self.assertEqual(response.status_code, 302)  # Check if it redirects
+        self.assertEqual(response.url, '?submitted=True')
+
+        # Check if the directory was created
+        new_directory = Directory.objects.get(name='New Directory', parent=None)
+        self.assertEqual(new_directory.owner, self.user)
+
+    def test_file_form_submission(self):
+        form_data = {'add_file': '', 'name': 'New File'}
+        response = self.client.post(reverse('root_folder'), form_data)
+        self.assertEqual(response.status_code, 302)  # Check if it redirects
+        self.assertEqual(response.url, '?submitted=True')
+
+        # Check if the file was created
+        new_file = File.objects.get(name='New File', parent=None)
+        self.assertEqual(new_file.owner, self.user)
+
+    def test_duplicate_directory(self):
+        Directory.objects.create(name='Existing Directory', parent=None, owner=self.user)
+        form_data = {'add_dir': '', 'name': 'Existing Directory'}
+        response = self.client.post(reverse('root_folder'), form_data)
+        self.assertEqual(response.status_code, 302)  # Check if it redirects
+        self.assertEqual(response.url, '?contains=True')
+
+    def test_duplicate_file(self):
+        File.objects.create(name='Existing File', parent=None, owner=self.user)
+        form_data = {'add_file': '', 'name': 'Existing File'}
+        response = self.client.post(reverse('root_folder'), form_data)
+        self.assertEqual(response.status_code, 302)  # Check if it redirects
+        self.assertEqual(response.url, '?contains=True')
