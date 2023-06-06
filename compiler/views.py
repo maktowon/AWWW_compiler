@@ -222,16 +222,15 @@ def run(request):
             if result.returncode == 0:
                 output = open(name[:-2] + '.asm', 'r').readlines()
                 asm = helpers.asm_to_sections(output)
-                if id != '':
-                    file = File.objects.get(id=id)
-                    file.code = code
-                    file.save()
-                    helpers.code_to_sections(file)
             else:
                 error = result.stderr.decode('utf-8')
         except Exception as e:
             error = str(e)
-
+        if id != '':
+            file = File.objects.get(id=id)
+            file.code = code
+            file.save()
+            helpers.code_to_sections(file)
         if os.path.exists(str(name)):
             os.remove(str(name))
         if os.path.exists(str(name[:-2] + '.asm')):
